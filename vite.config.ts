@@ -13,10 +13,14 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://middlewarejd-cnbqcdhyccb2d5du.mexicocentral-01.azurewebsites.net',
+        target: process.env.VITE_API_BASE || 'http://localhost:5104',
         changeOrigin: true,
         secure: true,
       },
     },
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
   },
 });
