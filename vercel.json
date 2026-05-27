@@ -1,10 +1,7 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "bash vercel-build.sh",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "vite",
-  "outputDirectory": "dist",
-  "env": {
-    "VITE_API_URL": "@vite_api_url"
-  }
+  "outputDirectory": "dist"
 }
