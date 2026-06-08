@@ -1,7 +1,0 @@
-{
-  "buildCommand": "bash vercel-build.sh",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "vite",
-  "outputDirectory": "dist"
-}

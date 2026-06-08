@@ -1,6 +1,17 @@
 import axios, { AxiosError } from 'axios';
+import { router } from 'expo-router';
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:5104';
+const API_BASE = process.env.EXPO_PUBLIC_API_BASE ?? 'http://localhost:5104';
+
+// In-memory token cache — synchronous mirror of AsyncStorage
+// AsyncStorage hydrates this cache on app startup via AuthContext
+let _accessToken: string | null = null;
+let _refreshToken: string | null = null;
+
+export function setTokenCache(access: string | null, refresh: string | null) {
+  _accessToken = access;
+  _refreshToken = refresh;
+}
 
 const apiClient = axios.create({
   baseURL: `${API_BASE}/api/v1`,
@@ -8,10 +19,8 @@ const apiClient = axios.create({
   timeout: 30000,
 });
 
-// Attach token to every request
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (_accessToken) config.headers.Authorization = `Bearer ${_accessToken}`;
   return config;
 });
 
@@ -23,7 +32,6 @@ function processQueue(error: unknown, token: string | null) {
   failedQueue = [];
 }
 
-// Auto-refresh on 401
 apiClient.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
@@ -42,26 +50,27 @@ apiClient.interceptors.response.use(
       original!._retry = true;
       isRefreshing = true;
 
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (!refreshToken) {
-        localStorage.clear();
-        window.location.href = '/login';
+      if (!_refreshToken) {
+        setTokenCache(null, null);
+        router.replace('/(auth)/login');
         return Promise.reject(error);
       }
 
       try {
-        const { data } = await axios.post(`${API_BASE}/api/v1/auth/refresh`, { refreshToken });
+        const { data } = await axios.post(`${API_BASE}/api/v1/auth/refresh`, {
+          refreshToken: _refreshToken,
+        });
         const newToken: string = data.data.token;
-        localStorage.setItem('accessToken', newToken);
-        localStorage.setItem('refreshToken', data.data.refreshToken);
+        const newRefresh: string = data.data.refreshToken;
+        setTokenCache(newToken, newRefresh);
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
         processQueue(null, newToken);
         original!.headers!['Authorization'] = `Bearer ${newToken}`;
         return apiClient(original!);
       } catch (err) {
         processQueue(err, null);
-        localStorage.clear();
-        window.location.href = '/login';
+        setTokenCache(null, null);
+        router.replace('/(auth)/login');
         return Promise.reject(err);
       } finally {
         isRefreshing = false;

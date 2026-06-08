@@ -1,68 +1,42 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { View, Text, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
-import { LogIn, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Hotel, LogIn, LogOut, User } from '../../lib/icons';
 
 export function PublicNavbar() {
-  const { isAuthenticated, isBackOffice, isCliente, user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
+  const { user, logout, isBackOffice } = useAuth();
+  const router = useRouter();
 
   return (
-    <nav className="bg-white/95 backdrop-blur-sm border-b border-kairos-border sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="font-serif text-2xl font-bold text-navy-600">Hotel</span>
-            <span className="font-serif text-2xl font-bold text-gold-500">Kairos</span>
-          </Link>
+    <View className="bg-navy-600 px-4 py-3 flex-row items-center justify-between">
+      <Pressable onPress={() => router.push('/')} className="flex-row items-center gap-2">
+        <Hotel size={20} className="text-gold-400" />
+        <Text className="text-lg font-bold text-gold-400">Hotel Kairos</Text>
+      </Pressable>
 
-          <div className="hidden md:flex items-center gap-6">
-            <Link to="/" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">
-              Inicio
-            </Link>
-            <Link to="/search" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">
-              Alojamientos
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {!isAuthenticated && (
-              <>
-                <Link to="/login" className="btn-ghost text-sm">
-                  <LogIn className="h-4 w-4 inline mr-1.5" />Ingresar
-                </Link>
-                <Link to="/register" className="btn-primary text-sm">
-                  Registrarme
-                </Link>
-              </>
+      <View className="flex-row items-center gap-3">
+        {user ? (
+          <>
+            {isBackOffice ? (
+              <Pressable onPress={() => router.push('/(backoffice)' as any)}>
+                <Text className="text-xs text-navy-200">Panel</Text>
+              </Pressable>
+            ) : (
+              <Pressable onPress={() => router.push('/(cliente)/reservas' as any)}>
+                <User size={18} className="text-navy-200" />
+              </Pressable>
             )}
-            {isAuthenticated && isCliente && (
-              <>
-                <Link to="/cliente/reservas" className="text-sm font-medium text-gray-600 hover:text-gold-600">
-                  <User className="h-4 w-4 inline mr-1" />Mis Reservas
-                </Link>
-                <button onClick={handleLogout} className="btn-ghost text-sm">
-                  <LogOut className="h-4 w-4 inline mr-1" />Salir
-                </button>
-              </>
-            )}
-            {isAuthenticated && isBackOffice && (
-              <>
-                <Link to="/backoffice" className="btn-secondary text-sm">
-                  <LayoutDashboard className="h-4 w-4 inline mr-1.5" />Panel Admin
-                </Link>
-                <button onClick={handleLogout} className="btn-ghost text-sm">
-                  <LogOut className="h-4 w-4 inline mr-1" />Salir
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </nav>
+            <Pressable onPress={logout}>
+              <LogOut size={18} className="text-navy-200" />
+            </Pressable>
+          </>
+        ) : (
+          <Pressable onPress={() => router.push('/(auth)/login' as any)} className="flex-row items-center gap-1.5">
+            <LogIn size={18} className="text-navy-200" />
+            <Text className="text-sm text-navy-200">Ingresar</Text>
+          </Pressable>
+        )}
+      </View>
+    </View>
   );
 }

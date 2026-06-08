@@ -1,37 +1,42 @@
-import React, { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { Modal as RNModal, View, Text, Pressable, ScrollView } from 'react-native';
+import { X } from '../../lib/icons';
 
-interface ModalProps {
+type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-}
-
-const sizes = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' };
+  size?: 'sm' | 'md' | 'lg';
+};
 
 export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    if (isOpen) document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
+  const maxWidths = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl' };
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[90vh] overflow-y-auto`}>
-        <div className="sticky top-0 bg-white flex items-center justify-between px-6 py-4 border-b border-gray-100 rounded-t-2xl">
-          <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="p-6">{children}</div>
-      </div>
-    </div>
+    <RNModal
+      visible={isOpen}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <Pressable
+        className="flex-1 bg-black/50 items-center justify-center p-4"
+        onPress={onClose}
+      >
+        <Pressable
+          className={`bg-white rounded-2xl w-full ${maxWidths[size]} max-h-[90%] shadow-2xl`}
+          onPress={(e) => e.stopPropagation()}
+        >
+          <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-100">
+            <Text className="text-lg font-semibold text-gray-800 flex-1 mr-4">{title}</Text>
+            <Pressable onPress={onClose} hitSlop={8}>
+              <X size={20} className="text-gray-400" />
+            </Pressable>
+          </View>
+          <ScrollView className="px-6 py-4" keyboardShouldPersistTaps="handled">
+            {children}
+          </ScrollView>
+        </Pressable>
+      </Pressable>
+    </RNModal>
   );
 }

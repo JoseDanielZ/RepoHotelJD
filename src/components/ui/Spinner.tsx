@@ -1,14 +1,16 @@
-export function Spinner({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
-  const s = { sm: 'h-4 w-4', md: 'h-8 w-8', lg: 'h-12 w-12' }[size];
-  return (
-    <div className={`${s} animate-spin rounded-full border-2 border-gold-200 border-t-gold-500 ${className}`} />
-  );
+import { View, ActivityIndicator } from 'react-native';
+
+type SpinnerProps = { size?: 'sm' | 'md' | 'lg'; color?: string };
+
+export function Spinner({ size = 'md', color = '#C9A840' }: SpinnerProps) {
+  const sizeMap = { sm: 'small', md: 'large', lg: 'large' } as const;
+  return <ActivityIndicator size={sizeMap[size]} color={color} />;
 }
 
 export function PageSpinner() {
   return (
-    <div className="flex items-center justify-center min-h-[300px]">
+    <View className="flex-1 items-center justify-center min-h-[300px]">
       <Spinner size="lg" />
-    </div>
+    </View>
   );
 }

@@ -1,23 +1,27 @@
-import { AlertCircle, CheckCircle2, Info } from 'lucide-react';
+import { View, Text } from 'react-native';
+import { AlertCircle, CheckCircle2, Info } from '../../lib/icons';
 
-interface AlertProps {
-  type?: 'error' | 'success' | 'info';
-  message: string;
-  className?: string;
-}
+type AlertType = 'error' | 'success' | 'info';
+type AlertProps = { type?: AlertType; message: string; className?: string };
+
+const styles: Record<AlertType, string> = {
+  error: 'bg-red-50 border border-red-200',
+  success: 'bg-green-50 border border-green-200',
+  info: 'bg-blue-50 border border-blue-200',
+};
+const textColors: Record<AlertType, string> = {
+  error: 'text-red-700',
+  success: 'text-green-700',
+  info: 'text-blue-700',
+};
+const IconMap = { error: AlertCircle, success: CheckCircle2, info: Info };
 
 export function Alert({ type = 'error', message, className = '' }: AlertProps) {
-  const styles = {
-    error:   'bg-red-50 border-red-200 text-red-700',
-    success: 'bg-green-50 border-green-200 text-green-700',
-    info:    'bg-blue-50 border-blue-200 text-blue-700',
-  };
-  const Icon = type === 'success' ? CheckCircle2 : type === 'info' ? Info : AlertCircle;
-
+  const Icon = IconMap[type];
   return (
-    <div className={`flex items-start gap-3 border rounded-lg px-4 py-3 text-sm ${styles[type]} ${className}`}>
-      <Icon className="h-4 w-4 mt-0.5 flex-shrink-0" />
-      <span>{message}</span>
-    </div>
+    <View className={`flex-row items-start gap-3 rounded-lg px-4 py-3 ${styles[type]} ${className}`}>
+      <Icon size={16} className={textColors[type]} />
+      <Text className={`text-sm flex-1 ${textColors[type]}`}>{message}</Text>
+    </View>
   );
 }
