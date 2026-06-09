@@ -7,8 +7,10 @@ import { extractError } from '../../src/api/client';
 import { Alert } from '../../src/components/ui/Alert';
 import { Spinner } from '../../src/components/ui/Spinner';
 
+const BACKOFFICE_ROLES = ['ADMINISTRADOR', 'ADMIN', 'RECEPCIONISTA', 'OPERATIVO', 'DESK_SERVICE'];
+
 export default function LoginScreen() {
-  const { login, isBackOffice } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
   const { from } = useLocalSearchParams<{ from?: string }>();
 
@@ -23,8 +25,9 @@ export default function LoginScreen() {
     setLoading(true);
     setError('');
     try {
-      await login(username, password);
+      const userData = await login(username, password);
       if (from) { router.replace(from as any); return; }
+      const isBackOffice = userData.roles.some(r => BACKOFFICE_ROLES.includes(r));
       router.replace(isBackOffice ? '/(backoffice)' : '/(cliente)/reservas');
     } catch (err) {
       setError(extractError(err));

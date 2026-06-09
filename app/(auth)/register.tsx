@@ -25,8 +25,9 @@ export default function RegisterScreen() {
     setLoading(true);
     setError('');
     try {
-      await register(username, password, nombres, correo);
-      router.replace('/(cliente)/reservas');
+      const userData = await register(username, password, nombres, correo);
+      const isBackOffice = userData.roles.some(r => ['ADMINISTRADOR', 'ADMIN', 'RECEPCIONISTA', 'OPERATIVO', 'DESK_SERVICE'].includes(r));
+      router.replace(isBackOffice ? '/(backoffice)' : '/(cliente)/reservas');
     } catch (err) {
       setError(extractError(err));
     } finally {

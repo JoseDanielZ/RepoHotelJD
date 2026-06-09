@@ -5,14 +5,17 @@ import { PageSpinner } from '../../src/components/ui/Spinner';
 import { CalendarCheck } from '../../src/lib/icons';
 
 export default function ClienteLayout() {
-  const { user, loading } = useAuth();
+  const { user, loading, isBackOffice } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (loading) return;
+    if (!user) {
       router.replace('/(auth)/login');
+    } else if (isBackOffice) {
+      router.replace('/(backoffice)');
     }
-  }, [loading, user]);
+  }, [loading, user, isBackOffice]);
 
   if (loading) return <PageSpinner />;
   if (!user) return null;

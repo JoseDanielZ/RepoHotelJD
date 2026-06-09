@@ -11,8 +11,8 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isBackOffice: boolean;
   isCliente: boolean;
-  login: (username: string, password: string) => Promise<void>;
-  register: (username: string, password: string, nombres: string, correo: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<LoginApiData>;
+  register: (username: string, password: string, nombres: string, correo: string) => Promise<LoginApiData>;
   logout: () => Promise<void>;
 }
 
@@ -82,20 +82,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isBackOffice = roles.some((r) => BACKOFFICE_ROLES.includes(r));
   const isCliente = !isBackOffice && isAuthenticated;
 
-  const login = useCallback(async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string): Promise<LoginApiData> => {
     const { data: res } = await authApi.login({ username, password });
     const userData = res.data;
     await saveToStorage(userData);
     setTokenCache(userData.token, userData.refreshToken);
     setUser(userData);
+    return userData;
   }, []);
 
-  const register = useCallback(async (username: string, password: string, nombres: string, correo: string) => {
+  const register = useCallback(async (username: string, password: string, nombres: string, correo: string): Promise<LoginApiData> => {
     const { data: res } = await authApi.register({ username, password, confirmPassword: password, nombres, correo });
     const userData = res.data;
     await saveToStorage(userData);
     setTokenCache(userData.token, userData.refreshToken);
     setUser(userData);
+    return userData;
   }, []);
 
   const logout = useCallback(async () => {
