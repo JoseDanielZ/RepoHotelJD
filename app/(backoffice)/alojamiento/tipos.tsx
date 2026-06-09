@@ -18,7 +18,7 @@ export default function TiposScreen() {
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [form, setForm] = useState({
-    nombre: '', descripcion: '', capacidadMaxima: '2', precioPorNoche: '0', sucursalGuid: '',
+    nombreTipoHabitacion: '', descripcion: '', capacidadTotal: '2', sucursalGuid: '',
   });
 
   const load = () => {
@@ -38,7 +38,7 @@ export default function TiposScreen() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ nombre: '', descripcion: '', capacidadMaxima: '2', precioPorNoche: '0', sucursalGuid: sucursales[0]?.sucursalGuid ?? '' });
+    setForm({ nombreTipoHabitacion: '', descripcion: '', capacidadTotal: '2', sucursalGuid: sucursales[0]?.sucursalGuid ?? '' });
     setSaveError('');
     setShowModal(true);
   };
@@ -46,10 +46,9 @@ export default function TiposScreen() {
   const openEdit = (t: any) => {
     setEditing(t);
     setForm({
-      nombre: t.nombre,
+      nombreTipoHabitacion: t.nombreTipoHabitacion ?? t.nombre ?? '',
       descripcion: t.descripcion ?? '',
-      capacidadMaxima: String(t.capacidadMaxima),
-      precioPorNoche: String(t.precioPorNoche),
+      capacidadTotal: String(t.capacidadTotal ?? t.capacidadMaxima ?? 2),
       sucursalGuid: t.sucursalGuid ?? '',
     });
     setSaveError('');
@@ -57,14 +56,21 @@ export default function TiposScreen() {
   };
 
   const save = async () => {
-    if (!form.nombre || Number(form.precioPorNoche) <= 0) {
-      setSaveError('Nombre y precio son obligatorios.');
+    if (!form.nombreTipoHabitacion) {
+      setSaveError('El nombre es obligatorio.');
       return;
     }
     setSaveLoading(true);
     setSaveError('');
     try {
-      const payload = { ...form, capacidadMaxima: Number(form.capacidadMaxima), precioPorNoche: Number(form.precioPorNoche) };
+      const payload = {
+        nombreTipoHabitacion: form.nombreTipoHabitacion,
+        descripcion: form.descripcion,
+        capacidadTotal: Number(form.capacidadTotal),
+        sucursalGuid: form.sucursalGuid || undefined,
+        estadoTipoHabitacion: editing?.estadoTipoHabitacion ?? 'ACT',
+        permitReservaPublica: true,
+      };
       if (editing) {
         await alojamientoApi.updateTipoHabitacion(editing.tipoHabitacionGuid, payload);
       } else {
@@ -113,15 +119,21 @@ export default function TiposScreen() {
         renderItem={({ item: t }) => (
           <View className="bg-white mx-4 mb-3 rounded-2xl p-4 shadow-sm">
             <View className="flex-row items-start justify-between mb-2">
-              <Text className="font-semibold text-gray-800 flex-1 mr-3">{t.nombre}</Text>
+              <Text className="font-semibold text-gray-800 flex-1 mr-3">
+                {t.nombreTipoHabitacion ?? t.nombre ?? '—'}
+              </Text>
               <Pressable onPress={() => openEdit(t)} className="p-1">
                 <Edit size={16} className="text-gray-400" />
               </Pressable>
             </View>
             <Text className="text-sm text-gray-500 mb-3" numberOfLines={2}>{t.descripcion || 'Sin descripción'}</Text>
             <View className="flex-row items-center justify-between">
-              <Text className="text-sm text-gray-500">{t.capacidadMaxima} personas máx.</Text>
-              <Text className="font-bold text-navy-600 text-sm">${Number(t.precioPorNoche).toFixed(2)}/noche</Text>
+              <Text className="text-sm text-gray-500">
+                {t.capacidadTotal ?? t.capacidadMaxima ?? '—'} personas máx.
+              </Text>
+              <Text className="text-xs text-gray-400">
+                {t.estadoTipoHabitacion ?? t.estado ?? 'ACT'}
+              </Text>
             </View>
             {t.nombreSucursal ? <Text className="text-xs text-gray-400 mt-1">{t.nombreSucursal}</Text> : null}
           </View>
@@ -135,19 +147,12 @@ export default function TiposScreen() {
           <View>
             <Text className="text-xs font-medium text-gray-600 mb-1">Nombre *</Text>
             <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
-              value={form.nombre} onChangeText={t => setForm({ ...form, nombre: t })} />
+              value={form.nombreTipoHabitacion} onChangeText={t => setForm({ ...form, nombreTipoHabitacion: t })} />
           </View>
-          <View className="flex-row gap-3">
-            <View className="flex-1">
-              <Text className="text-xs font-medium text-gray-600 mb-1">Capacidad máx.</Text>
-              <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
-                value={form.capacidadMaxima} onChangeText={t => setForm({ ...form, capacidadMaxima: t })} keyboardType="number-pad" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-xs font-medium text-gray-600 mb-1">Precio/noche *</Text>
-              <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
-                value={form.precioPorNoche} onChangeText={t => setForm({ ...form, precioPorNoche: t })} keyboardType="decimal-pad" />
-            </View>
+          <View>
+            <Text className="text-xs font-medium text-gray-600 mb-1">Capacidad máx.</Text>
+            <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
+              value={form.capacidadTotal} onChangeText={t => setForm({ ...form, capacidadTotal: t })} keyboardType="number-pad" />
           </View>
           {sucursales.length > 0 && (
             <View>

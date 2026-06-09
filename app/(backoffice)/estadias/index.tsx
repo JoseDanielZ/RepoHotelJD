@@ -77,9 +77,9 @@ export default function EstadiasScreen() {
             onPress={() => router.push(`/(backoffice)/estadias/${e.estadiaGuid}` as any)}
             className="bg-white mx-4 mb-2 rounded-xl p-4 shadow-sm flex-row items-center">
             <View className="flex-1">
-              <Text className="font-medium text-gray-800 text-sm mb-0.5">{e.nombreCliente ?? '—'}</Text>
-              <Text className="text-xs text-gray-500 mb-0.5">Hab. {e.numeroHabitacion ?? e.habitacionGuid?.slice(0, 8)}</Text>
-              <Text className="text-xs text-gray-400">CI: {e.fechaCheckIn} · CO: {e.fechaCheckOut ?? 'En curso'}</Text>
+              <Text className="font-medium text-gray-800 text-sm mb-0.5">Estadía {e.estadiaGuid?.slice(0, 8)}</Text>
+              <Text className="text-xs text-gray-500 mb-0.5">Hab. {e.habitacionGuid?.slice(0, 8) ?? '—'}</Text>
+              <Text className="text-xs text-gray-400">CI: {e.checkinUtc ?? '—'} · CO: {e.checkoutUtc ?? 'En curso'}</Text>
             </View>
             <View className="items-end gap-2">
               <Badge value={e.estadoEstadia ?? e.estado ?? 'ACT'} />

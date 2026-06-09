@@ -58,9 +58,9 @@ export default function HabitacionesScreen() {
     setForm({
       numeroHabitacion: h.numeroHabitacion,
       piso: String(h.piso ?? 1),
-      sucursalGuid: h.sucursalGuid,
-      tipoHabitacionGuid: h.tipoHabitacionGuid,
-      descripcion: h.descripcion ?? '',
+      sucursalGuid: h.sucursalGuid ?? sucursales.find((s: any) => s.idSucursal === h.idSucursal)?.sucursalGuid ?? '',
+      tipoHabitacionGuid: h.tipoHabitacionGuid ?? tipos.find((t: any) => t.idTipoHabitacion === h.idTipoHabitacion)?.tipoHabitacionGuid ?? '',
+      descripcion: h.descripcionHabitacion ?? h.descripcion ?? '',
     });
     setSaveError('');
     setShowModal(true);
@@ -74,7 +74,7 @@ export default function HabitacionesScreen() {
     setSaveLoading(true);
     setSaveError('');
     try {
-      const payload = { ...form, piso: Number(form.piso) };
+      const payload = { ...form, piso: Number(form.piso), descripcionHabitacion: form.descripcion };
       if (editing) {
         await alojamientoApi.updateHabitacion(editing.habitacionGuid, payload);
       } else {
@@ -174,7 +174,7 @@ export default function HabitacionesScreen() {
             <View className="border border-gray-200 rounded-lg overflow-hidden">
               <Picker selectedValue={form.tipoHabitacionGuid} onValueChange={v => setForm({ ...form, tipoHabitacionGuid: v })} style={{ height: 44 }}>
                 <Picker.Item label="Seleccionar..." value="" />
-                {tipos.map(t => <Picker.Item key={t.tipoHabitacionGuid} label={t.nombre} value={t.tipoHabitacionGuid} />)}
+                {tipos.map(t => <Picker.Item key={t.tipoHabitacionGuid} label={t.nombreTipoHabitacion ?? t.nombre} value={t.tipoHabitacionGuid} />)}
               </Picker>
             </View>
           </View>

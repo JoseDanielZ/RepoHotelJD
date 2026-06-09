@@ -19,7 +19,7 @@ export default function EstadiaDetailScreen() {
   const [showAddCargo, setShowAddCargo] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState('');
-  const [cargo, setCargo] = useState({ concepto: '', monto: '', detalle: '' });
+  const [cargo, setCargo] = useState({ descripcion: '', monto: '', categoria: '' });
 
   const loadData = () => {
     if (!estadiaGuid) return;
@@ -38,13 +38,13 @@ export default function EstadiaDetailScreen() {
   useEffect(loadData, [estadiaGuid]);
 
   const addCargo = async () => {
-    if (!cargo.concepto || !cargo.monto) { setAddError('Concepto y monto son obligatorios.'); return; }
+    if (!cargo.descripcion || !cargo.monto) { setAddError('Descripción y monto son obligatorios.'); return; }
     setAddLoading(true);
     setAddError('');
     try {
-      await hospedajeApi.addCargo(estadiaGuid!, { concepto: cargo.concepto, monto: Number(cargo.monto), detalle: cargo.detalle });
+      await hospedajeApi.addCargo(estadiaGuid!, { descripcion: cargo.descripcion, monto: Number(cargo.monto), categoria: cargo.categoria || 'CONSUMO' });
       setShowAddCargo(false);
-      setCargo({ concepto: '', monto: '', detalle: '' });
+      setCargo({ descripcion: '', monto: '', categoria: '' });
       loadData();
     } catch (err) {
       setAddError(extractError(err));
@@ -74,10 +74,10 @@ export default function EstadiaDetailScreen() {
               <Badge value={estadia.estadoEstadia ?? estadia.estado ?? 'ACT'} />
             </View>
             <View className="flex-row flex-wrap gap-3">
-              <InfoBox label="Cliente" value={estadia.nombreCliente ?? '—'} />
-              <InfoBox label="Habitación" value={estadia.numeroHabitacion ?? '—'} />
-              <InfoBox label="Check-in" value={estadia.fechaCheckIn ?? '—'} />
-              <InfoBox label="Check-out" value={estadia.fechaCheckOut ?? 'En curso'} />
+              <InfoBox label="Cliente ID" value={String(estadia.idCliente ?? '—')} />
+              <InfoBox label="Habitación" value={estadia.habitacionGuid?.slice(0, 8) ?? '—'} />
+              <InfoBox label="Check-in" value={estadia.checkinUtc ?? '—'} />
+              <InfoBox label="Check-out" value={estadia.checkoutUtc ?? 'En curso'} />
             </View>
           </View>
 
@@ -96,8 +96,8 @@ export default function EstadiaDetailScreen() {
                 {cargos.map((c: any, i: number) => (
                   <View key={i} className="flex-row items-center justify-between py-2.5 border-b border-gray-50">
                     <View className="flex-1">
-                      <Text className="font-medium text-gray-700 text-sm">{c.concepto}</Text>
-                      {c.detalle ? <Text className="text-xs text-gray-400">{c.detalle}</Text> : null}
+                      <Text className="font-medium text-gray-700 text-sm">{c.descripcion ?? c.concepto}</Text>
+                      {c.categoria ? <Text className="text-xs text-gray-400">{c.categoria}</Text> : null}
                     </View>
                     <Text className="font-semibold text-navy-600 text-sm">${Number(c.monto).toFixed(2)}</Text>
                   </View>
@@ -122,9 +122,9 @@ export default function EstadiaDetailScreen() {
         <View className="gap-3">
           {addError ? <Alert message={addError} type="error" /> : null}
           <View>
-            <Text className="text-xs font-medium text-gray-600 mb-1">Concepto *</Text>
+            <Text className="text-xs font-medium text-gray-600 mb-1">Descripción *</Text>
             <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
-              value={cargo.concepto} onChangeText={t => setCargo({ ...cargo, concepto: t })} />
+              value={cargo.descripcion} onChangeText={t => setCargo({ ...cargo, descripcion: t })} />
           </View>
           <View>
             <Text className="text-xs font-medium text-gray-600 mb-1">Monto *</Text>
@@ -132,9 +132,10 @@ export default function EstadiaDetailScreen() {
               value={cargo.monto} onChangeText={t => setCargo({ ...cargo, monto: t })} keyboardType="decimal-pad" />
           </View>
           <View>
-            <Text className="text-xs font-medium text-gray-600 mb-1">Detalle</Text>
+            <Text className="text-xs font-medium text-gray-600 mb-1">Categoría</Text>
             <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
-              value={cargo.detalle} onChangeText={t => setCargo({ ...cargo, detalle: t })} />
+              value={cargo.categoria} onChangeText={t => setCargo({ ...cargo, categoria: t })}
+              placeholder="CONSUMO" placeholderTextColor="#9CA3AF" />
           </View>
           <View className="flex-row gap-2 pt-2">
             <Pressable onPress={() => setShowAddCargo(false)} className="flex-1 border border-gray-200 rounded-lg py-2.5 items-center">

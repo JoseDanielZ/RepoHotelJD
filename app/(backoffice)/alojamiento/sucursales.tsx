@@ -19,7 +19,7 @@ export default function SucursalesScreen() {
   const [editing, setEditing] = useState<any>(null);
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [form, setForm] = useState({ nombre: '', destino: '', direccion: '', descripcion: '', tipoAlojamiento: 'HOTEL' });
+  const [form, setForm] = useState({ nombre: '', destino: '', direccion: '', descripcion: '', tipoAlojamiento: 'HOTEL', telefono: '', correo: '' });
 
   const load = () => {
     setLoading(true);
@@ -36,7 +36,7 @@ export default function SucursalesScreen() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ nombre: '', destino: '', direccion: '', descripcion: '', tipoAlojamiento: 'HOTEL' });
+    setForm({ nombre: '', destino: '', direccion: '', descripcion: '', tipoAlojamiento: 'HOTEL', telefono: '', correo: '' });
     setSaveError('');
     setShowModal(true);
   };
@@ -49,6 +49,8 @@ export default function SucursalesScreen() {
       direccion: s.direccion ?? '',
       descripcion: s.descripcion ?? '',
       tipoAlojamiento: s.tipoAlojamiento ?? 'HOTEL',
+      telefono: s.telefono ?? '',
+      correo: s.correo ?? '',
     });
     setSaveError('');
     setShowModal(true);
@@ -59,10 +61,20 @@ export default function SucursalesScreen() {
     setSaveLoading(true);
     setSaveError('');
     try {
+      const payload = {
+        nombreSucursal: form.nombre,
+        destino: form.destino,
+        direccion: form.direccion,
+        descripcion: form.descripcion,
+        tipoAlojamiento: form.tipoAlojamiento,
+        telefono: form.telefono,
+        correo: form.correo,
+        estado: editing?.estado ?? 'ACT',
+      };
       if (editing) {
-        await alojamientoApi.updateSucursal(editing.sucursalGuid, form);
+        await alojamientoApi.updateSucursal(editing.sucursalGuid, payload);
       } else {
-        await alojamientoApi.createSucursal(form);
+        await alojamientoApi.createSucursal(payload);
       }
       setShowModal(false);
       load();
@@ -149,6 +161,16 @@ export default function SucursalesScreen() {
             <Text className="text-xs font-medium text-gray-600 mb-1">Dirección</Text>
             <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
               value={form.direccion} onChangeText={t => setForm({ ...form, direccion: t })} />
+          </View>
+          <View>
+            <Text className="text-xs font-medium text-gray-600 mb-1">Teléfono</Text>
+            <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
+              value={form.telefono} onChangeText={t => setForm({ ...form, telefono: t })} keyboardType="phone-pad" />
+          </View>
+          <View>
+            <Text className="text-xs font-medium text-gray-600 mb-1">Correo</Text>
+            <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
+              value={form.correo} onChangeText={t => setForm({ ...form, correo: t })} keyboardType="email-address" autoCapitalize="none" />
           </View>
           <View>
             <Text className="text-xs font-medium text-gray-600 mb-1">Tipo</Text>
