@@ -10,6 +10,7 @@ import { Badge } from '../../../src/components/ui/Badge';
 import { Plus, Edit, RefreshCw, MapPin } from '../../../src/lib/icons';
 
 const TIPOS = ['HOTEL', 'HOSTAL', 'APART_HOTEL', 'RESORT', 'BOUTIQUE'];
+const CATEGORIAS = ['playa', 'ciudad', 'montana', 'aventura', 'cultural', 'bienestar'];
 
 export default function SucursalesScreen() {
   const [sucursales, setSucursales] = useState<any[]>([]);
@@ -19,7 +20,7 @@ export default function SucursalesScreen() {
   const [editing, setEditing] = useState<any>(null);
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [form, setForm] = useState({ codigoSucursal: '', nombre: '', pais: '', destino: '', direccion: '', descripcion: '', tipoAlojamiento: 'HOTEL', telefono: '', correo: '' });
+  const [form, setForm] = useState({ codigoSucursal: '', nombre: '', pais: '', destino: '', direccion: '', descripcion: '', tipoAlojamiento: 'HOTEL', categoriaViaje: 'ciudad', telefono: '', correo: '' });
 
   const load = () => {
     setLoading(true);
@@ -36,7 +37,7 @@ export default function SucursalesScreen() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ codigoSucursal: '', nombre: '', pais: '', destino: '', direccion: '', descripcion: '', tipoAlojamiento: 'HOTEL', telefono: '', correo: '' });
+    setForm({ codigoSucursal: '', nombre: '', pais: '', destino: '', direccion: '', descripcion: '', tipoAlojamiento: 'HOTEL', categoriaViaje: 'ciudad', telefono: '', correo: '' });
     setSaveError('');
     setShowModal(true);
   };
@@ -51,6 +52,7 @@ export default function SucursalesScreen() {
       direccion: s.direccion ?? '',
       descripcion: s.descripcionSucursal ?? s.descripcion ?? '',
       tipoAlojamiento: s.tipoAlojamiento ?? 'HOTEL',
+      categoriaViaje: s.categoriaViaje ?? 'ciudad',
       telefono: s.telefono ?? '',
       correo: s.correo ?? '',
     });
@@ -71,6 +73,7 @@ export default function SucursalesScreen() {
         direccion: form.direccion,
         descripcionSucursal: form.descripcion,
         tipoAlojamiento: form.tipoAlojamiento,
+        categoriaViaje: form.categoriaViaje,
         telefono: form.telefono,
         correo: form.correo,
         estadoSucursal: editing?.estadoSucursal ?? editing?.estado ?? 'ACT',
@@ -192,6 +195,14 @@ export default function SucursalesScreen() {
             <View className="border border-gray-200 rounded-lg overflow-hidden">
               <Picker selectedValue={form.tipoAlojamiento} onValueChange={v => setForm({ ...form, tipoAlojamiento: v })} style={{ height: 44 }}>
                 {TIPOS.map(t => <Picker.Item key={t} label={t} value={t} />)}
+              </Picker>
+            </View>
+          </View>
+          <View>
+            <Text className="text-xs font-medium text-gray-600 mb-1">Categoría de viaje *</Text>
+            <View className="border border-gray-200 rounded-lg overflow-hidden">
+              <Picker selectedValue={form.categoriaViaje} onValueChange={v => setForm({ ...form, categoriaViaje: v })} style={{ height: 44 }}>
+                {CATEGORIAS.map(c => <Picker.Item key={c} label={c} value={c} />)}
               </Picker>
             </View>
           </View>
