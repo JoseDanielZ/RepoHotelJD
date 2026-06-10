@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { InputField } from './InputField';
@@ -24,14 +24,33 @@ export function DateField({
 
   if (Platform.OS === 'web') {
     return (
-      <InputField
-        label={label}
-        value={value}
-        onChangeText={onChange}
-        placeholder={placeholder}
-        error={error}
-        containerClassName={containerClassName}
-      />
+      <View className={`gap-1 ${containerClassName}`}>
+        {label && (
+          <Text className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            {label}
+          </Text>
+        )}
+        {React.createElement('input', {
+          type: 'date',
+          value: value || '',
+          min: min || '',
+          max: max || '',
+          onChange: (e: any) => onChange(e.target.value),
+          style: {
+            border: `1px solid ${error ? '#f87171' : '#D1D5DB'}`,
+            borderRadius: 8,
+            padding: '10px 12px',
+            fontSize: 14,
+            color: value ? '#1F2937' : '#9CA3AF',
+            backgroundColor: 'white',
+            width: '100%',
+            outline: 'none',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          },
+        })}
+        {error && <Text className="text-xs text-red-600">{error}</Text>}
+      </View>
     );
   }
 
