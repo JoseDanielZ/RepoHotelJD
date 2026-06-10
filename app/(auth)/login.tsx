@@ -64,7 +64,7 @@ export default function LoginScreen() {
               <View className="mb-4">
                 <Text className="text-sm font-medium text-gray-700 mb-1">Usuario</Text>
                 <TextInput
-                  className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white"
+                  style={{ borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#1F2937', backgroundColor: 'white' }}
                   placeholder="tu_usuario"
                   placeholderTextColor="#9CA3AF"
                   value={username}
@@ -79,7 +79,7 @@ export default function LoginScreen() {
                 <Text className="text-sm font-medium text-gray-700 mb-1">Contraseña</Text>
                 <View className="flex-row border border-gray-300 rounded-lg bg-white items-center">
                   <TextInput
-                    className="flex-1 px-3 py-2.5 text-sm text-gray-800"
+                    style={{ flex: 1, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#1F2937' }}
                     placeholder="••••••••"
                     placeholderTextColor="#9CA3AF"
                     value={password}
