@@ -51,7 +51,7 @@ export default function SucursalesScreen() {
       destino: s.ciudad ?? s.destino ?? '',
       direccion: s.direccion ?? '',
       descripcion: s.descripcionSucursal ?? s.descripcion ?? '',
-      tipoAlojamiento: s.tipoAlojamiento ?? 'HOTEL',
+      tipoAlojamiento: s.tipoAlojamiento?.toUpperCase() ?? 'HOTEL',
       categoriaViaje: s.categoriaViaje ?? 'ciudad',
       telefono: s.telefono ?? '',
       correo: s.correo ?? '',
@@ -127,24 +127,24 @@ export default function SucursalesScreen() {
           <View className="bg-white mx-4 mb-3 rounded-2xl p-4 shadow-sm">
             <View className="flex-row items-start justify-between mb-2">
               <View className="flex-1 mr-3">
-                <Text className="font-semibold text-gray-800 mb-0.5">{s.nombre ?? s.nombreSucursal}</Text>
+                <Text className="font-semibold text-gray-800 mb-0.5">{s.nombreSucursal ?? s.nombre}</Text>
                 <View className="flex-row items-center gap-1">
                   <MapPin size={12} className="text-gray-400" />
                   <Text className="text-xs text-gray-500">{s.ciudad ?? s.destino}</Text>
                 </View>
               </View>
               <View className="flex-row items-center gap-2">
-                <Badge value={s.estado ?? (s.activo ? 'ACT' : 'INA')} />
+                <Badge value={s.estadoSucursal ?? s.estado ?? 'ACT'} />
                 <Pressable onPress={() => openEdit(s)} className="p-1">
                   <Edit size={16} className="text-gray-400" />
                 </Pressable>
               </View>
             </View>
-            {(s.descripcion || s.direccion) ? (
-              <Text className="text-sm text-gray-500 mb-2" numberOfLines={2}>{s.descripcion || s.direccion}</Text>
+            {(s.descripcionSucursal ?? s.descripcion) ? (
+              <Text className="text-sm text-gray-500 mb-2" numberOfLines={2}>{s.descripcionSucursal ?? s.descripcion}</Text>
             ) : null}
             <View className="self-start bg-blue-50 rounded-full px-3 py-0.5">
-              <Text className="text-xs text-navy-600">{s.tipoAlojamiento}</Text>
+              <Text className="text-xs text-navy-600">{s.tipoAlojamiento?.toUpperCase()}</Text>
             </View>
           </View>
         )}
