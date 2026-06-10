@@ -19,7 +19,7 @@ export default function SucursalesScreen() {
   const [editing, setEditing] = useState<any>(null);
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [form, setForm] = useState({ nombre: '', destino: '', direccion: '', descripcion: '', tipoAlojamiento: 'HOTEL', telefono: '', correo: '' });
+  const [form, setForm] = useState({ codigoSucursal: '', nombre: '', pais: '', destino: '', direccion: '', descripcion: '', tipoAlojamiento: 'HOTEL', telefono: '', correo: '' });
 
   const load = () => {
     setLoading(true);
@@ -36,7 +36,7 @@ export default function SucursalesScreen() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ nombre: '', destino: '', direccion: '', descripcion: '', tipoAlojamiento: 'HOTEL', telefono: '', correo: '' });
+    setForm({ codigoSucursal: '', nombre: '', pais: '', destino: '', direccion: '', descripcion: '', tipoAlojamiento: 'HOTEL', telefono: '', correo: '' });
     setSaveError('');
     setShowModal(true);
   };
@@ -44,7 +44,9 @@ export default function SucursalesScreen() {
   const openEdit = (s: any) => {
     setEditing(s);
     setForm({
+      codigoSucursal: s.codigoSucursal ?? '',
       nombre: s.nombreSucursal ?? s.nombre,
+      pais: s.pais ?? '',
       destino: s.ciudad ?? s.destino ?? '',
       direccion: s.direccion ?? '',
       descripcion: s.descripcionSucursal ?? s.descripcion ?? '',
@@ -57,13 +59,14 @@ export default function SucursalesScreen() {
   };
 
   const save = async () => {
-    if (!form.nombre || !form.destino) { setSaveError('Nombre y destino son obligatorios.'); return; }
+    if (!form.codigoSucursal || !form.nombre || !form.pais || !form.destino) { setSaveError('Código, nombre, país y ciudad son obligatorios.'); return; }
     setSaveLoading(true);
     setSaveError('');
     try {
       const payload = {
-        codigoSucursal: editing?.codigoSucursal ?? '',
+        codigoSucursal: form.codigoSucursal,
         nombreSucursal: form.nombre,
+        pais: form.pais,
         ciudad: form.destino,
         direccion: form.direccion,
         descripcionSucursal: form.descripcion,
@@ -149,9 +152,20 @@ export default function SucursalesScreen() {
         <View className="gap-3">
           {saveError ? <Alert message={saveError} type="error" /> : null}
           <View>
+            <Text className="text-xs font-medium text-gray-600 mb-1">Código Sucursal *</Text>
+            <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
+              value={form.codigoSucursal} onChangeText={t => setForm({ ...form, codigoSucursal: t })}
+              autoCapitalize="characters" maxLength={30} placeholder="Ej: SUC-001" />
+          </View>
+          <View>
             <Text className="text-xs font-medium text-gray-600 mb-1">Nombre *</Text>
             <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
               value={form.nombre} onChangeText={t => setForm({ ...form, nombre: t })} />
+          </View>
+          <View>
+            <Text className="text-xs font-medium text-gray-600 mb-1">País *</Text>
+            <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
+              value={form.pais} onChangeText={t => setForm({ ...form, pais: t })} placeholder="Ej: Ecuador" />
           </View>
           <View>
             <Text className="text-xs font-medium text-gray-600 mb-1">Destino / Ciudad *</Text>
