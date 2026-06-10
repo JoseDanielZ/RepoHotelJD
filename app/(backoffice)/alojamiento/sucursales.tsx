@@ -44,10 +44,10 @@ export default function SucursalesScreen() {
   const openEdit = (s: any) => {
     setEditing(s);
     setForm({
-      nombre: s.nombre ?? s.nombreSucursal,
-      destino: s.destino,
+      nombre: s.nombreSucursal ?? s.nombre,
+      destino: s.ciudad ?? s.destino ?? '',
       direccion: s.direccion ?? '',
-      descripcion: s.descripcion ?? '',
+      descripcion: s.descripcionSucursal ?? s.descripcion ?? '',
       tipoAlojamiento: s.tipoAlojamiento ?? 'HOTEL',
       telefono: s.telefono ?? '',
       correo: s.correo ?? '',
@@ -62,14 +62,15 @@ export default function SucursalesScreen() {
     setSaveError('');
     try {
       const payload = {
+        codigoSucursal: editing?.codigoSucursal ?? '',
         nombreSucursal: form.nombre,
-        destino: form.destino,
+        ciudad: form.destino,
         direccion: form.direccion,
-        descripcion: form.descripcion,
+        descripcionSucursal: form.descripcion,
         tipoAlojamiento: form.tipoAlojamiento,
         telefono: form.telefono,
         correo: form.correo,
-        estado: editing?.estado ?? 'ACT',
+        estadoSucursal: editing?.estadoSucursal ?? editing?.estado ?? 'ACT',
       };
       if (editing) {
         await alojamientoApi.updateSucursal(editing.sucursalGuid, payload);
@@ -123,7 +124,7 @@ export default function SucursalesScreen() {
                 <Text className="font-semibold text-gray-800 mb-0.5">{s.nombre ?? s.nombreSucursal}</Text>
                 <View className="flex-row items-center gap-1">
                   <MapPin size={12} className="text-gray-400" />
-                  <Text className="text-xs text-gray-500">{s.destino}</Text>
+                  <Text className="text-xs text-gray-500">{s.ciudad ?? s.destino}</Text>
                 </View>
               </View>
               <View className="flex-row items-center gap-2">
