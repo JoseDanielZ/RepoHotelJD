@@ -6,6 +6,28 @@ import { extractError } from '../../src/api/client';
 import { Alert } from '../../src/components/ui/Alert';
 import { Spinner } from '../../src/components/ui/Spinner';
 
+function Field({ label, value, onChangeText, placeholder, secure = false }: {
+  label: string; value: string; onChangeText: (v: string) => void;
+  placeholder: string; secure?: boolean;
+}) {
+  return (
+    <View className="mb-4">
+      <Text className="text-sm font-medium text-gray-700 mb-1">{label}</Text>
+      <TextInput
+        className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white"
+        placeholder={placeholder}
+        placeholderTextColor="#9CA3AF"
+        value={value}
+        onChangeText={onChangeText}
+        secureTextEntry={secure}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType={label === 'Correo electrónico' ? 'email-address' : 'default'}
+      />
+    </View>
+  );
+}
+
 export default function RegisterScreen() {
   const { register } = useAuth();
   const router = useRouter();
@@ -34,26 +56,6 @@ export default function RegisterScreen() {
       setLoading(false);
     }
   };
-
-  const Field = ({ label, value, onChangeText, placeholder, secure = false }: {
-    label: string; value: string; onChangeText: (v: string) => void;
-    placeholder: string; secure?: boolean;
-  }) => (
-    <View className="mb-4">
-      <Text className="text-sm font-medium text-gray-700 mb-1">{label}</Text>
-      <TextInput
-        className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white"
-        placeholder={placeholder}
-        placeholderTextColor="#9CA3AF"
-        value={value}
-        onChangeText={onChangeText}
-        secureTextEntry={secure}
-        autoCapitalize="none"
-        autoCorrect={false}
-        keyboardType={label === 'Correo electrónico' ? 'email-address' : 'default'}
-      />
-    </View>
-  );
 
   return (
     <KeyboardAvoidingView
