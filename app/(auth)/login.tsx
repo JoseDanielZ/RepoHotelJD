@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Link, useRouter, useLocalSearchParams } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { extractError } from '../../src/api/client';
@@ -12,7 +12,6 @@ const BACKOFFICE_ROLES = ['ADMINISTRADOR', 'ADMIN', 'RECEPCIONISTA', 'OPERATIVO'
 export default function LoginScreen() {
   const { login } = useAuth();
   const router = useRouter();
-  const { from } = useLocalSearchParams<{ from?: string }>();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +25,6 @@ export default function LoginScreen() {
     setError('');
     try {
       const userData = await login(username, password);
-      if (from) { router.replace(from as any); return; }
       const isBackOffice = userData.roles.some(r => BACKOFFICE_ROLES.includes(r));
       router.replace(isBackOffice ? '/(backoffice)' : '/(cliente)/reservas');
     } catch (err) {
@@ -44,11 +42,9 @@ export default function LoginScreen() {
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
-        style={{ flex: 1 }}
       >
         <View className="flex-1 items-center justify-center px-4 py-8">
           <View className="w-full max-w-md">
-            {/* Header */}
             <View className="items-center mb-8">
               <Text className="text-4xl font-bold text-navy-600">
                 Hotel <Text className="text-gold-500">Kairos</Text>
@@ -56,15 +52,13 @@ export default function LoginScreen() {
               <Text className="text-gray-500 mt-2">Inicia sesión en tu cuenta</Text>
             </View>
 
-            {/* Card */}
             <View className="bg-white rounded-2xl border border-kairos-border shadow-sm p-6">
               {error ? <Alert message={error} className="mb-4" /> : null}
 
-              {/* Username */}
               <View className="mb-4">
                 <Text className="text-sm font-medium text-gray-700 mb-1">Usuario</Text>
                 <TextInput
-                  style={{ borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#1F2937', backgroundColor: 'white' }}
+                  className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white"
                   placeholder="tu_usuario"
                   placeholderTextColor="#9CA3AF"
                   value={username}
@@ -74,20 +68,20 @@ export default function LoginScreen() {
                 />
               </View>
 
-              {/* Password */}
               <View className="mb-5">
                 <Text className="text-sm font-medium text-gray-700 mb-1">Contraseña</Text>
                 <View className="flex-row border border-gray-300 rounded-lg bg-white items-center">
                   <TextInput
-                    style={{ flex: 1, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#1F2937' }}
+                    className="flex-1 px-3 py-2.5 text-sm text-gray-800"
                     placeholder="••••••••"
                     placeholderTextColor="#9CA3AF"
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPwd}
                     autoCapitalize="none"
+                    autoCorrect={false}
                   />
-                  <Pressable onPress={() => setShowPwd(!showPwd)} className="px-3">
+                  <Pressable onPress={() => setShowPwd(p => !p)} className="px-3">
                     {showPwd
                       ? <EyeOff size={16} color="#9CA3AF" />
                       : <Eye size={16} color="#9CA3AF" />}
@@ -95,7 +89,6 @@ export default function LoginScreen() {
                 </View>
               </View>
 
-              {/* Submit */}
               <Pressable
                 onPress={handleSubmit}
                 disabled={loading}
