@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { router } from 'expo-router';
+import { setApolloTokenCache } from './graphql-client';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_BASE ?? 'http://localhost:5104';
 
@@ -63,6 +64,7 @@ apiClient.interceptors.response.use(
         const newToken: string = data.data.token;
         const newRefresh: string = data.data.refreshToken;
         setTokenCache(newToken, newRefresh);
+        setApolloTokenCache(newToken);
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
         processQueue(null, newToken);
         original!.headers!['Authorization'] = `Bearer ${newToken}`;

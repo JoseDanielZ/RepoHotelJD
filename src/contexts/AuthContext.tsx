@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { LoginApiData } from '../types';
 import { authApi } from '../api/auth.api';
 import { extractError, setTokenCache } from '../api/client';
+import { setApolloTokenCache } from '../api/graphql-client';
 
 interface AuthContextValue {
   user: LoginApiData | null;
@@ -68,6 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           roles: JSON.parse(map['roles'] || '[]'),
         };
         setTokenCache(token, map['refreshToken']);
+        setApolloTokenCache(token);
         setUser(userData);
       } catch {
         // ignore parse errors
@@ -87,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const userData = res.data;
     await saveToStorage(userData);
     setTokenCache(userData.token, userData.refreshToken);
+    setApolloTokenCache(userData.token);
     setUser(userData);
     return userData;
   }, []);
@@ -96,6 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const userData = res.data;
     await saveToStorage(userData);
     setTokenCache(userData.token, userData.refreshToken);
+    setApolloTokenCache(userData.token);
     setUser(userData);
     return userData;
   }, []);
@@ -107,6 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch { /* ignore */ }
     await AsyncStorage.multiRemove(STORAGE_KEYS as unknown as string[]);
     setTokenCache(null, null);
+    setApolloTokenCache(null);
     setUser(null);
   }, []);
 
