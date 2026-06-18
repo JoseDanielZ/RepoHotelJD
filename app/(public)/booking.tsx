@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import { Picker } from '@react-native-picker/picker';
+import { useAuth } from '../../src/contexts/AuthContext';
 import { reservasApi } from '../../src/api/reservas.api';
 import { extractError } from '../../src/api/client';
 import { Alert } from '../../src/components/ui/Alert';
@@ -39,6 +40,8 @@ export default function BookingScreen() {
   const fechaFin = params.fechaFin ?? '';
   const nombreSucursal = params.nombre ?? 'Alojamiento seleccionado';
 
+  const { user } = useAuth();
+
   const [step, setStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -54,6 +57,12 @@ export default function BookingScreen() {
     telefono: '',
     direccion: '',
   });
+
+  useEffect(() => {
+    if (user?.email) {
+      setCliente(prev => ({ ...prev, correo: user.email }));
+    }
+  }, [user?.email]);
 
   const [adultos, setAdultos] = useState(Number(params.adultos ?? 2));
   const [ninos, setNinos] = useState(0);
