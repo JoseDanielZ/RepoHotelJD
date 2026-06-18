@@ -114,32 +114,38 @@ export interface ReservaSummaryDTO {
 }
 
 export interface ReservaHabitacionDetailDTO {
-  tipoNombre: string;
-  numeroHabitacion: string;
-  precioNoche: number;
+  reservaHabitacionGuid: string;
+  habitacionGuid: string;
+  fechaInicio: string;
+  fechaFin: string;
+  numAdultos: number;
+  numNinos: number;
+  precioNocheAplicado: number;
+  subtotalLinea: number;
+  valorIvaLinea: number;
+  descuentoLinea: number;
+  totalLinea: number;
+  estadoDetalle: string;
 }
 
 export interface ReservaDetailDTO {
   reservaGuid: string;
   codigoReserva: string;
-  nombreSucursal: string;
-  destino: string;
+  clienteGuid: string;
+  sucursalGuid: string;
+  fechaReservaUtc: string;
   fechaInicio: string;
   fechaFin: string;
-  numAdultos: number;
-  numNinos: number;
+  subtotalReserva: number;
+  valorIva: number;
+  totalReserva: number;
+  descuentoAplicado: number;
+  saldoPendiente: number;
+  origenCanalReserva: string;
   estadoReserva: string;
-  montoTotal: number;
-  estadoPago: string;
+  fechaConfirmacionUtc: string | null;
   observaciones: string | null;
-  cliente: {
-    tipoIdentificacion: string;
-    numeroIdentificacion: string;
-    nombres: string;
-    apellidos: string;
-    correo: string;
-    telefono: string;
-  } | null;
+  esWalkin: boolean;
   habitaciones: ReservaHabitacionDetailDTO[];
 }
 
