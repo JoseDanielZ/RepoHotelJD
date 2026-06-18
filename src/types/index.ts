@@ -103,6 +103,7 @@ export interface AccommodationDetailDTO {
 
 export interface ReservaSummaryDTO {
   reservaGuid: string;
+  clienteGuid: string;
   codigoReserva: string;
   nombreCliente: string;
   nombreSucursal: string;

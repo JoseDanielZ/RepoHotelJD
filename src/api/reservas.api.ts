@@ -17,8 +17,8 @@ export const reservasApi = {
   getMisReservas: (params?: { page?: number; limit?: number; estado?: string }) =>
     apiClient.get('/public/reservas', { params }),
 
-  getMiReserva: (reservaGuid: string) =>
-    apiClient.get(`/accommodations/reservas/${reservaGuid}`),
+  getMiReserva: (reservaGuid: string, clienteGuid?: string) =>
+    apiClient.get(`/accommodations/reservas/${reservaGuid}`, { params: clienteGuid ? { clienteGuid } : undefined }),
 
   cancelarReservaPublic: (reservaGuid: string, motivo: string) =>
     apiClient.patch(`/public/reservas/${reservaGuid}/cancelar`, { motivo }),

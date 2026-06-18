@@ -59,7 +59,7 @@ export default function MisReservasScreen() {
       }
       renderItem={({ item: r }) => (
         <Pressable
-          onPress={() => router.push({ pathname: '/(cliente)/reservas/[reservaGuid]', params: { reservaGuid: r.reservaGuid } } as any)}
+          onPress={() => router.push({ pathname: '/(cliente)/reservas/[reservaGuid]', params: { reservaGuid: r.reservaGuid, clienteGuid: r.clienteGuid } } as any)}
           className="bg-white rounded-2xl border border-kairos-border shadow-sm p-4 mb-3 flex-row items-start gap-3"
         >
           <View className="flex-1 min-w-0">

@@ -11,14 +11,14 @@ import type { ReservaDetailDTO } from '../../../src/types';
 
 export default function ReservaDetailScreen() {
   const router = useRouter();
-  const { reservaGuid } = useLocalSearchParams<{ reservaGuid: string }>();
+  const { reservaGuid, clienteGuid } = useLocalSearchParams<{ reservaGuid: string; clienteGuid: string }>();
   const [reserva, setReserva] = useState<ReservaDetailDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (!reservaGuid) return;
-    reservasApi.getMiReserva(reservaGuid)
+    reservasApi.getMiReserva(reservaGuid, clienteGuid)
       .then(({ data }) => setReserva((data as any).data ?? data))
       .catch(err => setError(extractError(err)))
       .finally(() => setLoading(false));
