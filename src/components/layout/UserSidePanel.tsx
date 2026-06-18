@@ -70,7 +70,7 @@ export function UserSidePanel({ visible, onClose }: Props) {
 
   const tipoCliente = profile?.roles?.[0]?.nombreRol ?? 'Cliente';
   const correo = profile?.correo ?? user?.email ?? '';
-  const initials = getInitials(displayName || user?.username ?? '');
+  const initials = getInitials(displayName || (user?.username ?? ''));
 
   function navigate(href: string) {
     onClose();

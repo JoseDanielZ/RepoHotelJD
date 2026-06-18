@@ -31,7 +31,7 @@ export function ClienteDrawerContent() {
 
   const tipoCliente = profile?.roles?.[0]?.nombreRol ?? 'Cliente';
   const correo = profile?.correo ?? user?.email ?? '';
-  const initials = getInitials(displayName || user?.username ?? '');
+  const initials = getInitials(displayName || (user?.username ?? ''));
 
   function isActive(href: string) {
     const normalized = href
