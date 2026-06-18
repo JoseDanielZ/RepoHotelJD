@@ -1,12 +1,16 @@
 import { useEffect } from 'react';
-import { Tabs, useRouter } from 'expo-router';
+import { Platform, useWindowDimensions } from 'react-native';
+import { Drawer } from 'expo-router/drawer';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { PageSpinner } from '../../src/components/ui/Spinner';
-import { CalendarCheck } from '../../src/lib/icons';
+import { ClienteDrawerContent } from '../../src/components/layout/ClienteDrawerContent';
 
 export default function ClienteLayout() {
   const { user, loading, isBackOffice } = useAuth();
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isDesktop = Platform.OS === 'web' && width >= 1024;
 
   useEffect(() => {
     if (loading) return;
@@ -21,28 +25,29 @@ export default function ClienteLayout() {
   if (!user) return null;
 
   return (
-    <Tabs
+    <Drawer
+      drawerContent={() => <ClienteDrawerContent />}
       screenOptions={{
-        tabBarStyle: { backgroundColor: '#fff', borderTopColor: '#E8E2D8' },
-        tabBarActiveTintColor: '#C9A840',
-        tabBarInactiveTintColor: '#9CA3AF',
+        drawerType: isDesktop ? 'permanent' : 'slide',
+        drawerStyle: { width: 256, backgroundColor: '#1C3361' },
         headerStyle: { backgroundColor: '#1C3361' },
         headerTintColor: '#C9A840',
-        headerTitleStyle: { fontWeight: '700' },
+        headerTitleStyle: { fontWeight: '700', color: '#fff' },
+        headerTitleAlign: 'left',
       }}
     >
-      <Tabs.Screen
+      <Drawer.Screen
         name="reservas/index"
-        options={{
-          title: 'Mis Reservas',
-          tabBarLabel: 'Reservas',
-          tabBarIcon: ({ color, size }) => <CalendarCheck size={size} color={color} />,
-        }}
+        options={{ title: 'Mis Reservas', drawerLabel: 'Mis Reservas' }}
       />
-      <Tabs.Screen
+      <Drawer.Screen
         name="reservas/[reservaGuid]"
-        options={{ href: null }}
+        options={{ drawerItemStyle: { display: 'none' }, title: 'Detalle Reserva' }}
       />
-    </Tabs>
+      <Drawer.Screen
+        name="facturas/index"
+        options={{ title: 'Mis Facturas', drawerLabel: 'Mis Facturas' }}
+      />
+    </Drawer>
   );
 }

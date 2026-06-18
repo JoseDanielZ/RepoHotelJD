@@ -5,6 +5,9 @@ export const facturacionApi = {
   listFacturas: (params?: { estado?: string; pagina?: number; limite?: number }) =>
     apiClient.get('/internal/facturas', { params }),
 
+  listMisFacturas: (params?: { estado?: string; limite?: number }) =>
+    apiClient.get<FacturaDTO[]>('/public/facturas', { params }),
+
   getFacturas: (params?: { page?: number; pageSize?: number }) =>
     apiClient.get<PagedResponse<FacturaDTO>>('/internal/facturas', { params }),
 
