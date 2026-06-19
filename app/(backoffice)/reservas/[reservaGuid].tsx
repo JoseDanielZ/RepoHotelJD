@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { reservasApi } from '../../../src/api/reservas.api';
+import { alojamientoApi } from '../../../src/api/alojamiento.api';
 import { extractError } from '../../../src/api/client';
 import { PageSpinner } from '../../../src/components/ui/Spinner';
 import { Alert } from '../../../src/components/ui/Alert';
@@ -12,6 +13,8 @@ export default function BackofficeReservaDetailScreen() {
   const { reservaGuid } = useLocalSearchParams<{ reservaGuid: string }>();
   const router = useRouter();
   const [reserva, setReserva] = useState<any>(null);
+  const [cliente, setCliente] = useState<any>(null);
+  const [sucursalNombre, setSucursalNombre] = useState('');
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,7 +24,16 @@ export default function BackofficeReservaDetailScreen() {
     if (!reservaGuid) return;
     setLoading(true);
     reservasApi.getReserva(reservaGuid)
-      .then(({ data }) => setReserva((data as any).data ?? data))
+      .then(({ data }) => {
+        const r = (data as any).data ?? data;
+        setReserva(r);
+        if (r.idCliente) reservasApi.getCliente(r.idCliente)
+          .then(({ data: c }) => setCliente((c as any).data ?? c))
+          .catch(() => {});
+        if (r.idSucursal) alojamientoApi.getSucursal(r.idSucursal)
+          .then(({ data: s }) => setSucursalNombre(((s as any).data ?? s)?.nombreSucursal ?? ''))
+          .catch(() => {});
+      })
       .catch(err => setError(extractError(err)))
       .finally(() => setLoading(false));
   };
@@ -45,6 +57,10 @@ export default function BackofficeReservaDetailScreen() {
 
   if (loading) return <PageSpinner />;
 
+  function fmt(iso: string) {
+    return new Date(iso).toLocaleDateString('es-EC', { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
   return (
     <ScrollView className="flex-1 bg-kairos-bg" contentContainerStyle={{ padding: 16 }}>
       <Pressable onPress={() => router.push('/(backoffice)/reservas' as any)} className="flex-row items-center gap-1 mb-5">
@@ -60,30 +76,30 @@ export default function BackofficeReservaDetailScreen() {
           <View className="bg-white rounded-2xl p-4 shadow-sm">
             <View className="flex-row items-start justify-between mb-4">
               <View className="flex-1 mr-3">
-                <Text className="text-xl font-bold text-gray-800 mb-1">{reserva.nombreSucursal}</Text>
+                {sucursalNombre ? <Text className="text-xl font-bold text-gray-800 mb-1">{sucursalNombre}</Text> : null}
                 <Text className="font-mono text-sm text-navy-600">{reserva.codigoReserva}</Text>
               </View>
               <Badge value={reserva.estadoReserva} />
             </View>
             <View className="flex-row flex-wrap gap-3">
-              <InfoBox label="Check-in" value={reserva.fechaInicio} />
-              <InfoBox label="Check-out" value={reserva.fechaFin} />
-              <InfoBox label="Adultos" value={String(reserva.numAdultos)} />
-              <InfoBox label="Niños" value={String(reserva.numNinos)} />
+              <InfoBox label="Check-in" value={reserva.fechaInicio ? fmt(reserva.fechaInicio) : '—'} />
+              <InfoBox label="Check-out" value={reserva.fechaFin ? fmt(reserva.fechaFin) : '—'} />
+              <InfoBox label="Adultos" value={String(reserva.habitaciones?.reduce((s: number, h: any) => s + (h.numAdultos ?? 0), 0) ?? 0)} />
+              <InfoBox label="Niños" value={String(reserva.habitaciones?.reduce((s: number, h: any) => s + (h.numNinos ?? 0), 0) ?? 0)} />
             </View>
             {reserva.observaciones ? (
               <Text className="text-sm text-gray-500 italic mt-3">{reserva.observaciones}</Text>
             ) : null}
           </View>
 
-          {reserva.cliente && (
+          {cliente && (
             <View className="bg-white rounded-2xl p-4 shadow-sm">
               <Text className="font-semibold text-gray-700 mb-3">Cliente</Text>
               <View className="flex-row flex-wrap gap-3">
-                <InfoBox label="Nombre" value={`${reserva.cliente.nombres} ${reserva.cliente.apellidos}`} />
-                <InfoBox label="Documento" value={`${reserva.cliente.tipoIdentificacion} ${reserva.cliente.numeroIdentificacion}`} />
-                <InfoBox label="Correo" value={reserva.cliente.correo} />
-                <InfoBox label="Teléfono" value={reserva.cliente.telefono} />
+                <InfoBox label="Nombre" value={`${cliente.nombres} ${cliente.apellidos}`} />
+                <InfoBox label="Documento" value={`${cliente.tipoIdentificacion} ${cliente.numeroIdentificacion}`} />
+                <InfoBox label="Correo" value={cliente.correo} />
+                <InfoBox label="Teléfono" value={cliente.telefono ?? '—'} />
               </View>
             </View>
           )}
@@ -94,17 +110,18 @@ export default function BackofficeReservaDetailScreen() {
               {reserva.habitaciones.map((h: any, i: number) => (
                 <View key={i} className="flex-row justify-between py-2 border-b border-gray-50">
                   <Text className="text-sm text-gray-700">
-                    {h.tipoNombre}{h.numeroHabitacion ? ` · #${h.numeroHabitacion}` : ''}
+                    {`Habitación #${h.idHabitacion}`}
+                    {h.numAdultos ? `  ·  ${h.numAdultos}A${h.numNinos > 0 ? ` ${h.numNinos}N` : ''}` : ''}
                   </Text>
-                  {h.precioNoche > 0 && (
-                    <Text className="text-sm font-medium text-navy-600">${h.precioNoche}/noche</Text>
+                  {h.precioNocheAplicado > 0 && (
+                    <Text className="text-sm font-medium text-navy-600">${h.precioNocheAplicado}/noche</Text>
                   )}
                 </View>
               ))}
-              {reserva.montoTotal > 0 && (
+              {reserva.totalReserva > 0 && (
                 <View className="flex-row justify-between pt-3">
                   <Text className="font-bold text-sm">Total</Text>
-                  <Text className="font-bold text-sm text-navy-600">${reserva.montoTotal.toFixed(2)}</Text>
+                  <Text className="font-bold text-sm text-navy-600">${reserva.totalReserva.toFixed(2)}</Text>
                 </View>
               )}
             </View>
