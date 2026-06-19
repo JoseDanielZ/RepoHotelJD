@@ -16,10 +16,10 @@ import { extractError } from '../../src/api/client';
 import { Alert } from '../../src/components/ui/Alert';
 import { Spinner } from '../../src/components/ui/Spinner';
 import { InputField } from '../../src/components/ui/InputField';
-import { CheckCircle2, ChevronRight, Calendar, MapPin } from '../../src/lib/icons';
+import { CheckCircle2, ChevronRight, Calendar, MapPin, Lock } from '../../src/lib/icons';
 import { Copy } from 'lucide-react-native';
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
 
 const tiposIdentificacion = ['CC', 'CE', 'PAS', 'NIT'];
 
@@ -66,6 +66,8 @@ export default function BookingScreen() {
 
   const [adultos, setAdultos] = useState(Number(params.adultos ?? 2));
   const [ninos, setNinos] = useState(0);
+  const [pago, setPago] = useState({ titular: '', numero: '', cvv: '', expiracion: '' });
+  const [pagoError, setPagoError] = useState('');
 
   const handleCreateReserva = async () => {
     if (!sucursalGuid || !fechaInicio || !fechaFin) {
@@ -103,7 +105,7 @@ export default function BookingScreen() {
 
       const reservaData = (data as any).data ?? data;
       setReservaCreada(reservaData.codigoReserva ?? reservaData.reservaGuid ?? '');
-      setStep(3);
+      setStep(4);
     } catch (err) {
       setError(extractError(err));
     } finally {
@@ -117,8 +119,8 @@ export default function BookingScreen() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // ─── Step 3: Success ──────────────────────────────────────────────────────
-  if (step === 3) {
+  // ─── Step 4: Success ──────────────────────────────────────────────────────
+  if (step === 4) {
     return (
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -256,7 +258,7 @@ export default function BookingScreen() {
 
         {/* Steps indicator */}
         <View className="flex-row items-center gap-2 mb-8">
-          {[1, 2].map((s) => (
+          {[1, 2, 3].map((s) => (
             <View key={s} className="flex-row items-center gap-2">
               <View
                 className="h-8 w-8 rounded-full items-center justify-center"
@@ -273,9 +275,9 @@ export default function BookingScreen() {
                 className="text-sm font-medium"
                 style={{ color: step >= s ? '#1f2937' : '#9ca3af' }}
               >
-                {s === 1 ? 'Datos del huésped' : 'Resumen'}
+                {s === 1 ? 'Huésped' : s === 2 ? 'Resumen' : 'Pago'}
               </Text>
-              {s < 2 && <ChevronRight size={16} color="#d1d5db" />}
+              {s < 3 && <ChevronRight size={16} color="#d1d5db" />}
             </View>
           ))}
         </View>
@@ -495,14 +497,115 @@ export default function BookingScreen() {
               </Pressable>
 
               <Pressable
-                onPress={handleCreateReserva}
+                onPress={() => { setError(''); setStep(3); }}
+                className="flex-1 bg-gold-500 rounded-lg py-2.5 flex-row items-center justify-center gap-2"
+              >
+                <Text className="text-white font-semibold text-sm">Continuar al pago</Text>
+                <ChevronRight size={16} color="#fff" />
+              </Pressable>
+            </View>
+          </View>
+        )}
+
+        {/* ── Step 3: Payment form ── */}
+        {step === 3 && (
+          <View className="bg-kairos-card rounded-2xl border border-kairos-border shadow-sm p-5 gap-4">
+            {/* Header */}
+            <View className="flex-row items-center gap-3 mb-1">
+              <Lock size={20} color="#1C3361" />
+              <View>
+                <Text className="font-semibold text-gray-800">Datos de pago</Text>
+                <Text className="text-xs text-gray-400">PAGO SIMULADO — ENTORNO DE PRUEBAS</Text>
+              </View>
+            </View>
+
+            {pagoError ? <Alert message={pagoError} className="mb-2" /> : null}
+
+            {/* Titular */}
+            <InputField
+              label="Titular de la tarjeta *"
+              value={pago.titular}
+              onChangeText={(v) => setPago({ ...pago, titular: v })}
+              autoCapitalize="characters"
+              placeholder="NOMBRE APELLIDO"
+            />
+
+            {/* Número de tarjeta */}
+            <InputField
+              label="Número de tarjeta *"
+              value={pago.numero}
+              onChangeText={(v) => {
+                const digits = v.replace(/\D/g, '').slice(0, 16);
+                const formatted = digits.replace(/(.{4})/g, '$1 ').trim();
+                setPago({ ...pago, numero: formatted });
+              }}
+              keyboardType="numeric"
+              maxLength={19}
+              placeholder="XXXX XXXX XXXX XXXX"
+            />
+
+            {/* Vencimiento + CVV */}
+            <View className="flex-row gap-4">
+              <View style={{ flex: 1 }}>
+                <InputField
+                  label="Vencimiento (MM/AA)"
+                  value={pago.expiracion}
+                  onChangeText={(v) => {
+                    const d = v.replace(/\D/g, '').slice(0, 4);
+                    setPago({ ...pago, expiracion: d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d });
+                  }}
+                  keyboardType="numeric"
+                  maxLength={5}
+                  placeholder="MM/AA"
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <InputField
+                  label="CVV *"
+                  value={pago.cvv}
+                  onChangeText={(v) => setPago({ ...pago, cvv: v.replace(/\D/g, '').slice(0, 3) })}
+                  keyboardType="numeric"
+                  maxLength={3}
+                  secureTextEntry
+                  placeholder="•••"
+                />
+              </View>
+            </View>
+
+            {/* Action buttons */}
+            <View className="flex-row gap-3 pt-2">
+              <Pressable
+                onPress={() => { setPagoError(''); setStep(2); }}
+                className="flex-1 border border-gray-300 rounded-lg py-2.5 items-center justify-center"
+              >
+                <Text className="text-gray-700 font-semibold text-sm">Atrás</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => {
+                  const digits = pago.numero.replace(/\s/g, '');
+                  if (!pago.titular.trim()) {
+                    setPagoError('Ingresa el nombre del titular de la tarjeta.');
+                    return;
+                  }
+                  if (!/^\d{16}$/.test(digits)) {
+                    setPagoError('El número de tarjeta debe tener 16 dígitos.');
+                    return;
+                  }
+                  if (!/^\d{3}$/.test(pago.cvv)) {
+                    setPagoError('El CVV debe tener exactamente 3 dígitos.');
+                    return;
+                  }
+                  setPagoError('');
+                  handleCreateReserva();
+                }}
                 disabled={loading}
                 className="flex-1 bg-gold-500 rounded-lg py-2.5 flex-row items-center justify-center gap-2"
                 style={{ opacity: loading ? 0.6 : 1 }}
               >
                 {loading && <Spinner size="sm" />}
                 <Text className="text-white font-semibold text-sm">
-                  {loading ? 'Procesando...' : 'Confirmar reserva'}
+                  {loading ? 'Procesando...' : 'Confirmar y pagar'}
                 </Text>
               </Pressable>
             </View>
