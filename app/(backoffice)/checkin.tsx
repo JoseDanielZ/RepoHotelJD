@@ -38,7 +38,7 @@ export default function CheckInScreen() {
     setActionLoading(true);
     setError('');
     try {
-      await reservasApi.checkIn(reserva.reservaGuid);
+      await reservasApi.checkIn(reserva.guidReserva);
       setSuccess('Check-in realizado correctamente.');
       setReserva(null);
       setCodigo('');
@@ -54,7 +54,7 @@ export default function CheckInScreen() {
     setActionLoading(true);
     setError('');
     try {
-      await reservasApi.checkOut(reserva.reservaGuid);
+      await reservasApi.checkOut(reserva.guidReserva);
       setSuccess('Check-out realizado correctamente.');
       setReserva(null);
       setCodigo('');

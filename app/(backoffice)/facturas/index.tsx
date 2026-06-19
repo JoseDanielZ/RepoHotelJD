@@ -41,7 +41,7 @@ export default function FacturasScreen() {
     <View className="flex-1 bg-kairos-bg">
       <FlatList
         data={facturas}
-        keyExtractor={item => item.facturaGuid}
+        keyExtractor={item => String(item.idFactura)}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
         ListHeaderComponent={
           <View className="p-4">
@@ -81,11 +81,11 @@ export default function FacturasScreen() {
         }
         renderItem={({ item: f }) => (
           <Pressable
-            onPress={() => router.push(`/(backoffice)/facturas/${f.facturaGuid}` as any)}
+            onPress={() => router.push(`/(backoffice)/facturas/${f.idFactura}` as any)}
             className="bg-white mx-4 mb-2 rounded-xl p-4 shadow-sm flex-row items-center">
             <View className="flex-1">
               <Text className="font-mono font-semibold text-navy-600 text-sm mb-0.5">
-                {f.numeroFactura ?? f.facturaGuid?.slice(0, 8)}
+                {f.numeroFactura ?? f.guidFactura?.slice(0, 8)}
               </Text>
               <Text className="text-gray-700 text-sm mb-0.5">{f.nombreCliente ?? '—'}</Text>
               <Text className="text-xs text-gray-500">{f.fechaEmision?.split('T')[0] ?? '—'}</Text>

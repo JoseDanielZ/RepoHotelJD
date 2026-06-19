@@ -80,7 +80,7 @@ export default function RolesScreen() {
           </View>
         }
         renderItem={({ item: r }) => {
-          const name = r.nombre ?? r.name ?? String(r);
+          const name = r.nombreRol ?? r.nombre ?? r.name ?? String(r);
           const isSystem = SYSTEM_ROLES.includes(name.toUpperCase());
           return (
             <View className="bg-white mx-4 mb-3 rounded-2xl p-4 shadow-sm flex-row items-center gap-3">
@@ -89,7 +89,7 @@ export default function RolesScreen() {
               </View>
               <View className="flex-1">
                 <Text className="font-semibold text-gray-800">{name}</Text>
-                {r.descripcion ? <Text className="text-xs text-gray-500">{r.descripcion}</Text> : null}
+                {(r.descripcionRol ?? r.descripcion) ? <Text className="text-xs text-gray-500">{r.descripcionRol ?? r.descripcion}</Text> : null}
                 {isSystem && <Text className="text-xs text-navy-500 font-medium">Rol del sistema</Text>}
               </View>
             </View>

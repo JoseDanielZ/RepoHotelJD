@@ -23,8 +23,14 @@ export const reservasApi = {
   cancelarReservaPublic: (reservaGuid: string, motivo: string) =>
     apiClient.patch(`/public/reservas/${reservaGuid}/cancelar`, { motivo }),
 
-  buscarPorCodigo: (codigoReserva: string) =>
-    apiClient.get('/internal/reservas/by-codigo', { params: { codigoReserva } }),
+  buscarPorCodigo: async (codigoReserva: string) => {
+    const res = await apiClient.get('/internal/reservas', { params: { codigoReserva, limite: 1 } });
+    const items = Array.isArray(res.data)
+      ? res.data
+      : (res.data as any).items ?? (res.data as any).data ?? [];
+    if (!items.length) return Promise.reject(new Error('Reserva no encontrada'));
+    return { ...res, data: items[0] };
+  },
 
   getClienteByEmail: (correo: string) =>
     apiClient.get<ClientePublicDto>('/public/clientes/by-email', { params: { correo } }),
