@@ -9,7 +9,7 @@ export const hospedajeApi = {
     apiClient.get<EstadiaDTO[]>('/internal/estadias'),
 
   getEstadia: (idOrGuid: number | string) =>
-    apiClient.get<EstadiaDTO>(`/internal/estadias/${idOrGuid}`),
+    apiClient.get<EstadiaDTO>(`/internal/hospedaje/estadias/${idOrGuid}`),
 
   checkIn: (idReserva: number | string) =>
     apiClient.post<EstadiaDTO>(`/internal/estadias/checkin/${idReserva}`),

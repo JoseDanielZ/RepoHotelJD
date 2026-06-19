@@ -41,7 +41,12 @@ export default function UsuariosScreen() {
 
   const openEdit = (u: any) => {
     setEditing(u);
-    setForm({ username: u.username, email: u.email ?? '', password: '', roleNames: u.roles ?? [] });
+    setForm({
+      username: u.username,
+      email: u.correo ?? '',
+      password: '',
+      roleNames: u.roles?.map((r: any) => r.nombreRol ?? r.nombre ?? '') ?? [],
+    });
     setSaveError('');
     setShowModal(true);
   };
@@ -120,15 +125,18 @@ export default function UsuariosScreen() {
           <View className="bg-white mx-4 mb-2 rounded-xl p-4 shadow-sm flex-row items-center">
             <View className="flex-1">
               <Text className="font-medium text-gray-800 text-sm mb-0.5">{u.username}</Text>
-              <Text className="text-xs text-gray-500 mb-1">{u.email ?? '—'}</Text>
+              <Text className="text-xs text-gray-500 mb-1">{u.correo ?? '—'}</Text>
               <View className="flex-row flex-wrap gap-1">
-                {(u.roles ?? []).slice(0, 3).map((r: string) => (
-                  <View key={r} className="bg-blue-50 rounded-full px-2 py-0.5">
-                    <Text className="text-xs text-navy-600">{r}</Text>
-                  </View>
-                ))}
+                {(u.roles ?? []).slice(0, 3).map((r: any) => {
+                  const rn = r.nombreRol ?? r.nombre ?? String(r);
+                  return (
+                    <View key={rn} className="bg-blue-50 rounded-full px-2 py-0.5">
+                      <Text className="text-xs text-navy-600">{rn}</Text>
+                    </View>
+                  );
+                })}
                 {(u.roles ?? []).length > 3 && (
-                  <Text className="text-xs text-gray-400">+{u.roles.length - 3}</Text>
+                  <Text className="text-xs text-gray-400">+{(u.roles ?? []).length - 3}</Text>
                 )}
               </View>
             </View>
@@ -182,7 +190,7 @@ export default function UsuariosScreen() {
               <Text className="text-xs font-medium text-gray-600 mb-2">Roles</Text>
               <View className="flex-row flex-wrap gap-2">
                 {roles.map((r: any) => {
-                  const name = r.nombre ?? r.name ?? String(r);
+                  const name = r.nombreRol ?? r.nombre ?? r.name ?? String(r);
                   const active = form.roleNames.includes(name);
                   return (
                     <Pressable

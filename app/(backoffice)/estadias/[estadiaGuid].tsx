@@ -13,6 +13,7 @@ export default function EstadiaDetailScreen() {
   const { estadiaGuid } = useLocalSearchParams<{ estadiaGuid: string }>();
   const router = useRouter();
   const [estadia, setEstadia] = useState<any>(null);
+  const [estadiaId, setEstadiaId] = useState<number | null>(null);
   const [cargos, setCargos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -24,14 +25,21 @@ export default function EstadiaDetailScreen() {
   const loadData = () => {
     if (!estadiaGuid) return;
     setLoading(true);
-    Promise.all([
-      hospedajeApi.getEstadia(estadiaGuid),
-      hospedajeApi.getCargos(estadiaGuid),
-    ]).then(([e, c]) => {
-      setEstadia((e.data as any).data ?? e.data);
-      const cs = Array.isArray(c.data) ? c.data : (c.data as any).data ?? (c.data as any).items ?? [];
-      setCargos(cs);
-    }).catch(err => setError(extractError(err)))
+    hospedajeApi.getEstadia(estadiaGuid)
+      .then(e => {
+        const est = (e.data as any).data ?? e.data;
+        setEstadia(est);
+        if (est?.idEstadia) {
+          setEstadiaId(est.idEstadia);
+          hospedajeApi.getCargos(est.idEstadia)
+            .then(c => {
+              const cs = Array.isArray(c.data) ? c.data : (c.data as any).data ?? (c.data as any).items ?? [];
+              setCargos(cs);
+            })
+            .catch(() => {});
+        }
+      })
+      .catch(err => setError(extractError(err)))
       .finally(() => setLoading(false));
   };
 
@@ -42,7 +50,7 @@ export default function EstadiaDetailScreen() {
     setAddLoading(true);
     setAddError('');
     try {
-      await hospedajeApi.addCargo(estadiaGuid!, { descripcion: cargo.descripcion, monto: Number(cargo.monto), categoria: cargo.categoria || 'CONSUMO' });
+      await hospedajeApi.addCargo(estadiaId ?? estadiaGuid!, { descripcion: cargo.descripcion, monto: Number(cargo.monto), categoria: cargo.categoria || 'CONSUMO' });
       setShowAddCargo(false);
       setCargo({ descripcion: '', monto: '', categoria: '' });
       loadData();
