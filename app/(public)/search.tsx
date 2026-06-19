@@ -256,14 +256,6 @@ function AlojamientoCard({
         <Text className="text-xs font-bold text-navy-600">{item.tipoAlojamiento}</Text>
       </View>
 
-      {item.habitacionesDisponibles > 0 && (
-        <View className="absolute bottom-[136px] left-3 bg-green-500 rounded-full px-2 py-0.5">
-          <Text className="text-white text-xs font-semibold">
-            {item.habitacionesDisponibles} disponibles
-          </Text>
-        </View>
-      )}
-
       {/* Content */}
       <View className="p-4">
         <View className="flex-row items-start justify-between mb-2">
@@ -279,6 +271,16 @@ function AlojamientoCard({
             </View>
           )}
         </View>
+
+        {item.habitacionesDisponibles > 0 && (
+          <View className="flex-row mb-2">
+            <View className="bg-green-500 rounded-full px-2 py-0.5">
+              <Text className="text-white text-xs font-semibold">
+                {item.habitacionesDisponibles} disponibles
+              </Text>
+            </View>
+          </View>
+        )}
 
         {destino ? (
           <View className="flex-row items-center gap-1 mb-3">
