@@ -27,13 +27,21 @@ export default function HabitacionesScreen() {
 
   const load = () => {
     setLoading(true);
+    setError('');
     Promise.all([
-      alojamientoApi.listHabitaciones({ sucursalGuid: filterSucursal || undefined }),
+      alojamientoApi.listHabitaciones(),
       alojamientoApi.listSucursales(),
       alojamientoApi.listTiposHabitacion(),
     ]).then(([h, s, t]) => {
-      setHabitaciones(Array.isArray(h.data) ? h.data : (h.data as any).items ?? (h.data as any).data ?? []);
-      setSucursales(Array.isArray(s.data) ? s.data : (s.data as any).items ?? (s.data as any).data ?? []);
+      const allHabs = Array.isArray(h.data) ? h.data : (h.data as any).items ?? (h.data as any).data ?? [];
+      const sucursalesData = Array.isArray(s.data) ? s.data : (s.data as any).items ?? (s.data as any).data ?? [];
+      let filteredHabs = allHabs;
+      if (filterSucursal) {
+        const sel = sucursalesData.find((s: any) => s.sucursalGuid === filterSucursal);
+        if (sel) filteredHabs = allHabs.filter((h: any) => h.idSucursal === sel.idSucursal);
+      }
+      setHabitaciones(filteredHabs);
+      setSucursales(sucursalesData);
       setTipos(Array.isArray(t.data) ? t.data : (t.data as any).items ?? (t.data as any).data ?? []);
     })
     .catch(err => setError(extractError(err)))
