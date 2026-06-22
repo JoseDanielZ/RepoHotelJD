@@ -21,7 +21,8 @@ export default function HabitacionesScreen() {
   const [saveError, setSaveError] = useState('');
   const [filterSucursal, setFilterSucursal] = useState('');
   const [form, setForm] = useState({
-    numeroHabitacion: '', piso: '1', sucursalGuid: '', tipoHabitacionGuid: '', descripcion: '',
+    numeroHabitacion: '', piso: '1', sucursalGuid: '', tipoHabitacionGuid: '',
+    capacidad: '1', precioBase: '0', descripcion: '',
   });
 
   const load = () => {
@@ -47,7 +48,7 @@ export default function HabitacionesScreen() {
       numeroHabitacion: '', piso: '1',
       sucursalGuid: sucursales[0]?.sucursalGuid ?? '',
       tipoHabitacionGuid: tipos[0]?.tipoHabitacionGuid ?? '',
-      descripcion: '',
+      capacidad: '1', precioBase: '0', descripcion: '',
     });
     setSaveError('');
     setShowModal(true);
@@ -60,6 +61,8 @@ export default function HabitacionesScreen() {
       piso: String(h.piso ?? 1),
       sucursalGuid: h.sucursalGuid ?? sucursales.find((s: any) => s.idSucursal === h.idSucursal)?.sucursalGuid ?? '',
       tipoHabitacionGuid: h.tipoHabitacionGuid ?? tipos.find((t: any) => t.idTipoHabitacion === h.idTipoHabitacion)?.tipoHabitacionGuid ?? '',
+      capacidad: String(h.capacidadHabitacion ?? 1),
+      precioBase: String(h.precioBase ?? 0),
       descripcion: h.descripcionHabitacion ?? h.descripcion ?? '',
     });
     setSaveError('');
@@ -71,10 +74,28 @@ export default function HabitacionesScreen() {
       setSaveError('Número, sucursal y tipo son obligatorios.');
       return;
     }
+    if (Number(form.capacidad) <= 0 || Number(form.precioBase) <= 0) {
+      setSaveError('La capacidad y el precio base deben ser mayores a cero.');
+      return;
+    }
+    const sucursal = sucursales.find((s: any) => s.sucursalGuid === form.sucursalGuid);
+    const tipo = tipos.find((t: any) => t.tipoHabitacionGuid === form.tipoHabitacionGuid);
+    if (!sucursal || !tipo) {
+      setSaveError('Sucursal o tipo de habitación no válidos.');
+      return;
+    }
     setSaveLoading(true);
     setSaveError('');
     try {
-      const payload = { ...form, piso: Number(form.piso), descripcionHabitacion: form.descripcion };
+      const payload = {
+        idSucursal: sucursal.idSucursal,
+        idTipoHabitacion: tipo.idTipoHabitacion,
+        numeroHabitacion: form.numeroHabitacion,
+        piso: Number(form.piso),
+        capacidadHabitacion: Number(form.capacidad),
+        precioBase: Number(form.precioBase),
+        descripcionHabitacion: form.descripcion,
+      };
       if (editing) {
         await alojamientoApi.updateHabitacion(editing.habitacionGuid, payload);
       } else {
@@ -159,6 +180,16 @@ export default function HabitacionesScreen() {
             <Text className="text-xs font-medium text-gray-600 mb-1">Piso</Text>
             <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
               value={form.piso} onChangeText={t => setForm({ ...form, piso: t })} keyboardType="number-pad" />
+          </View>
+          <View>
+            <Text className="text-xs font-medium text-gray-600 mb-1">Capacidad *</Text>
+            <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
+              value={form.capacidad} onChangeText={t => setForm({ ...form, capacidad: t })} keyboardType="number-pad" />
+          </View>
+          <View>
+            <Text className="text-xs font-medium text-gray-600 mb-1">Precio base *</Text>
+            <TextInput className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50"
+              value={form.precioBase} onChangeText={t => setForm({ ...form, precioBase: t })} keyboardType="decimal-pad" />
           </View>
           <View>
             <Text className="text-xs font-medium text-gray-600 mb-1">Sucursal *</Text>
