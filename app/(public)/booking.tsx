@@ -12,14 +12,15 @@ import * as Clipboard from 'expo-clipboard';
 import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { reservasApi } from '../../src/api/reservas.api';
+import { alojamientoApi } from '../../src/api/alojamiento.api';
 import { extractError } from '../../src/api/client';
 import { Alert } from '../../src/components/ui/Alert';
 import { Spinner } from '../../src/components/ui/Spinner';
 import { InputField } from '../../src/components/ui/InputField';
-import { CheckCircle2, ChevronRight, Calendar, MapPin, Lock } from '../../src/lib/icons';
+import { CheckCircle2, ChevronRight, Calendar, MapPin, Lock, BedDouble } from '../../src/lib/icons';
 import { Copy } from 'lucide-react-native';
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 0 | 1 | 2 | 3 | 4;
 
 const tiposIdentificacion = ['CC', 'CE', 'PAS', 'NIT'];
 
@@ -42,7 +43,12 @@ export default function BookingScreen() {
 
   const { user } = useAuth();
 
-  const [step, setStep] = useState<Step>(1);
+  const [step, setStep] = useState<Step>(0);
+  const [habitacionesDisponibles, setHabitacionesDisponibles] = useState<any[]>([]);
+  const [loadingHabs, setLoadingHabs] = useState(true);
+  const [habError, setHabError] = useState('');
+  const [selectedHabitacion, setSelectedHabitacion] = useState<any>(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [reservaCreada, setReservaCreada] = useState<string | null>(null);
@@ -64,6 +70,19 @@ export default function BookingScreen() {
     }
   }, [user?.email]);
 
+  useEffect(() => {
+    if (!sucursalGuid) return;
+    setLoadingHabs(true);
+    setHabError('');
+    alojamientoApi.getHabitacionesPublic({ sucursalGuid, fechaInicio: fechaInicio || undefined, fechaFin: fechaFin || undefined })
+      .then(res => {
+        const all = Array.isArray(res.data) ? res.data : (res.data as any).items ?? (res.data as any).data ?? [];
+        setHabitacionesDisponibles(all.filter((h: any) => h.estadoHabitacion === 'DIS'));
+      })
+      .catch(err => setHabError(extractError(err)))
+      .finally(() => setLoadingHabs(false));
+  }, [sucursalGuid, fechaInicio, fechaFin]);
+
   const [adultos, setAdultos] = useState(Number(params.adultos ?? 2));
   const [ninos, setNinos] = useState(0);
   const [pago, setPago] = useState({ titular: '', numero: '', cvv: '', expiracion: '' });
@@ -72,6 +91,12 @@ export default function BookingScreen() {
   const handleCreateReserva = async () => {
     if (!sucursalGuid || !fechaInicio || !fechaFin) {
       setError('Faltan datos de la reserva. Vuelve a seleccionar el alojamiento.');
+      return;
+    }
+
+    const tipoGuid = selectedHabitacion?.tipoHabitacion?.tipoHabitacionGuid ?? tipoHabitacionGuid;
+    if (!tipoGuid) {
+      setError('Selecciona una habitación para continuar.');
       return;
     }
 
@@ -95,7 +120,7 @@ export default function BookingScreen() {
         },
         habitaciones: [
           {
-            tipoHabitacionGuid,
+            tipoHabitacionGuid: tipoGuid,
             numHabitaciones: 1,
             numAdultos: adultos,
             numNinos: ninos,
@@ -258,7 +283,7 @@ export default function BookingScreen() {
 
         {/* Steps indicator */}
         <View className="flex-row items-center gap-2 mb-8">
-          {[1, 2, 3].map((s) => (
+          {([0, 1, 2, 3] as Step[]).map((s) => (
             <View key={s} className="flex-row items-center gap-2">
               <View
                 className="h-8 w-8 rounded-full items-center justify-center"
@@ -268,14 +293,14 @@ export default function BookingScreen() {
                   className="text-sm font-bold"
                   style={{ color: step >= s ? '#fff' : '#6b7280' }}
                 >
-                  {s}
+                  {s + 1}
                 </Text>
               </View>
               <Text
                 className="text-sm font-medium"
                 style={{ color: step >= s ? '#1f2937' : '#9ca3af' }}
               >
-                {s === 1 ? 'Huésped' : s === 2 ? 'Resumen' : 'Pago'}
+                {s === 0 ? 'Habitación' : s === 1 ? 'Huésped' : s === 2 ? 'Resumen' : 'Pago'}
               </Text>
               {s < 3 && <ChevronRight size={16} color="#d1d5db" />}
             </View>
@@ -284,6 +309,66 @@ export default function BookingScreen() {
 
         {/* Error */}
         {error ? <Alert message={error} className="mb-4" /> : null}
+
+        {/* ── Step 0: Room selection ── */}
+        {step === 0 && (
+          <View className="bg-kairos-card rounded-2xl border border-kairos-border shadow-sm p-5 gap-4">
+            <Text className="font-semibold text-gray-800">Selecciona tu habitación</Text>
+
+            {habError ? <Alert message={habError} className="mb-2" /> : null}
+
+            {loadingHabs ? (
+              <View className="items-center py-8">
+                <Spinner size="lg" />
+                <Text className="text-gray-400 text-sm mt-2">Cargando habitaciones...</Text>
+              </View>
+            ) : habitacionesDisponibles.length === 0 ? (
+              <View className="items-center py-8">
+                <BedDouble size={36} color="#d1d5db" />
+                <Text className="text-gray-400 text-sm mt-2">No hay habitaciones disponibles para estas fechas.</Text>
+              </View>
+            ) : (
+              <View className="gap-3">
+                {habitacionesDisponibles.map((hab: any) => {
+                  const isSelected = selectedHabitacion?.habitacionGuid === hab.habitacionGuid;
+                  return (
+                    <Pressable
+                      key={hab.habitacionGuid}
+                      onPress={() => setSelectedHabitacion(hab)}
+                      className="rounded-xl border p-4"
+                      style={{ borderColor: isSelected ? '#C9A840' : '#e5e7eb', borderWidth: isSelected ? 2 : 1, backgroundColor: isSelected ? '#fdf8ec' : '#fff' }}
+                    >
+                      <View className="flex-row items-start justify-between">
+                        <View className="flex-1">
+                          <Text className="font-bold text-navy-700 text-base">Habitación #{hab.numeroHabitacion}</Text>
+                          <Text className="text-sm text-gray-600">{hab.tipoHabitacion?.nombreTipoHabitacion ?? 'Tipo no disponible'}</Text>
+                          <Text className="text-xs text-gray-400 mt-0.5">Piso {hab.piso ?? '—'} · Capacidad: {hab.capacidadHabitacion} personas</Text>
+                        </View>
+                        <View className="items-end">
+                          <Text className="font-bold text-gold-600 text-base">${hab.precioBase}</Text>
+                          <Text className="text-xs text-gray-400">por noche</Text>
+                        </View>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+
+            <Pressable
+              onPress={() => {
+                if (!selectedHabitacion) return;
+                setStep(1);
+              }}
+              disabled={!selectedHabitacion}
+              className="bg-gold-500 rounded-lg mt-1 py-3 flex-row items-center justify-center gap-2"
+              style={{ opacity: selectedHabitacion ? 1 : 0.4 }}
+            >
+              <Text className="text-white font-semibold text-sm">Continuar</Text>
+              <ChevronRight size={16} color="#fff" />
+            </Pressable>
+          </View>
+        )}
 
         {/* ── Step 1: Guest data form ── */}
         {step === 1 && (
@@ -420,26 +505,34 @@ export default function BookingScreen() {
               </View>
             </View>
 
-            {/* Continuar */}
-            <Pressable
-              onPress={() => {
-                if (
-                  !cliente.nombres ||
-                  !cliente.correo ||
-                  !cliente.telefono ||
-                  !cliente.numeroIdentificacion
-                ) {
-                  setError('Completa los campos obligatorios (*).');
-                  return;
-                }
-                setError('');
-                setStep(2);
-              }}
-              className="bg-gold-500 rounded-lg mt-1 py-3 flex-row items-center justify-center gap-2"
-            >
-              <Text className="text-white font-semibold text-sm">Continuar</Text>
-              <ChevronRight size={16} color="#fff" />
-            </Pressable>
+            {/* Buttons */}
+            <View className="flex-row gap-3 pt-1">
+              <Pressable
+                onPress={() => setStep(0)}
+                className="flex-1 border border-gray-300 rounded-lg py-2.5 items-center justify-center"
+              >
+                <Text className="text-gray-700 font-semibold text-sm">Atrás</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  if (
+                    !cliente.nombres ||
+                    !cliente.correo ||
+                    !cliente.telefono ||
+                    !cliente.numeroIdentificacion
+                  ) {
+                    setError('Completa los campos obligatorios (*).');
+                    return;
+                  }
+                  setError('');
+                  setStep(2);
+                }}
+                className="flex-1 bg-gold-500 rounded-lg py-2.5 flex-row items-center justify-center gap-2"
+              >
+                <Text className="text-white font-semibold text-sm">Continuar</Text>
+                <ChevronRight size={16} color="#fff" />
+              </Pressable>
+            </View>
           </View>
         )}
 
@@ -459,6 +552,14 @@ export default function BookingScreen() {
                 <Text className="text-gray-500 text-sm">Alojamiento</Text>
                 <Text className="font-medium text-sm text-gray-800">{nombreSucursal}</Text>
               </View>
+              {selectedHabitacion && (
+                <View className="flex-row justify-between">
+                  <Text className="text-gray-500 text-sm">Habitación</Text>
+                  <Text className="text-sm text-gray-800">
+                    #{selectedHabitacion.numeroHabitacion} · {selectedHabitacion.tipoHabitacion?.nombreTipoHabitacion ?? ''}
+                  </Text>
+                </View>
+              )}
               <View className="flex-row justify-between">
                 <Text className="text-gray-500 text-sm">Check-in</Text>
                 <Text className="text-sm text-gray-800">{fechaInicio}</Text>
