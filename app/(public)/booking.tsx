@@ -48,6 +48,7 @@ export default function BookingScreen() {
   const [loadingHabs, setLoadingHabs] = useState(true);
   const [habError, setHabError] = useState('');
   const [selectedHabitacion, setSelectedHabitacion] = useState<any>(null);
+  const [tipoNombre, setTipoNombre] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -77,10 +78,18 @@ export default function BookingScreen() {
     alojamientoApi.getHabitacionesPublic({ sucursalGuid, fechaInicio: fechaInicio || undefined, fechaFin: fechaFin || undefined })
       .then(res => {
         const all = Array.isArray(res.data) ? res.data : (res.data as any).items ?? (res.data as any).data ?? [];
-        setHabitacionesDisponibles(all.filter((h: any) => h.estadoHabitacion === 'DIS'));
+        const disponibles = all
+          .filter((h: any) => h.estadoHabitacion === 'DIS')
+          .filter((h: any) => !tipoHabitacionGuid || h.tipoHabitacionGuid === tipoHabitacionGuid);
+        setHabitacionesDisponibles(disponibles);
       })
       .catch(err => setHabError(extractError(err)))
       .finally(() => setLoadingHabs(false));
+    if (tipoHabitacionGuid) {
+      alojamientoApi.getTipoHabitacionPublic(tipoHabitacionGuid)
+        .then(res => setTipoNombre((res.data as any).nombreTipoHabitacion ?? ''))
+        .catch(() => {});
+    }
   }, [sucursalGuid, fechaInicio, fechaFin]);
 
   const [adultos, setAdultos] = useState(Number(params.adultos ?? 2));
@@ -94,7 +103,9 @@ export default function BookingScreen() {
       return;
     }
 
-    const tipoGuid = selectedHabitacion?.tipoHabitacion?.tipoHabitacionGuid ?? tipoHabitacionGuid;
+    const tipoGuid = selectedHabitacion?.tipoHabitacionGuid
+      ?? selectedHabitacion?.tipoHabitacion?.tipoHabitacionGuid
+      ?? tipoHabitacionGuid;
     if (!tipoGuid) {
       setError('Selecciona una habitación para continuar.');
       return;
@@ -341,7 +352,7 @@ export default function BookingScreen() {
                       <View className="flex-row items-start justify-between">
                         <View className="flex-1">
                           <Text className="font-bold text-navy-700 text-base">Habitación #{hab.numeroHabitacion}</Text>
-                          <Text className="text-sm text-gray-600">{hab.tipoHabitacion?.nombreTipoHabitacion ?? 'Tipo no disponible'}</Text>
+                          <Text className="text-sm text-gray-600">{tipoNombre || hab.tipoHabitacionGuid?.slice(0, 8) || 'Sin tipo'}</Text>
                           <Text className="text-xs text-gray-400 mt-0.5">Piso {hab.piso ?? '—'} · Capacidad: {hab.capacidadHabitacion} personas</Text>
                         </View>
                         <View className="items-end">
@@ -556,7 +567,7 @@ export default function BookingScreen() {
                 <View className="flex-row justify-between">
                   <Text className="text-gray-500 text-sm">Habitación</Text>
                   <Text className="text-sm text-gray-800">
-                    #{selectedHabitacion.numeroHabitacion} · {selectedHabitacion.tipoHabitacion?.nombreTipoHabitacion ?? ''}
+                    #{selectedHabitacion.numeroHabitacion} · {tipoNombre || selectedHabitacion.tipoHabitacionGuid?.slice(0, 8) || ''}
                   </Text>
                 </View>
               )}
