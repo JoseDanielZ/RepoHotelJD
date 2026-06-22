@@ -97,7 +97,7 @@ export default function HabitacionesScreen() {
         descripcionHabitacion: form.descripcion,
       };
       if (editing) {
-        await alojamientoApi.updateHabitacion(editing.habitacionGuid, payload);
+        await alojamientoApi.updateHabitacion(editing.idHabitacion, payload);
       } else {
         await alojamientoApi.createHabitacion(payload);
       }
