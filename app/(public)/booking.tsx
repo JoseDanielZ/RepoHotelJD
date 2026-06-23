@@ -132,7 +132,9 @@ export default function BookingScreen() {
         habitaciones: [
           {
             tipoHabitacionGuid: tipoGuid,
-            habitacionGuid: selectedHabitacion?.habitacionGuid ?? undefined,
+            ...(selectedHabitacion?.habitacionGuid
+              ? { habitacionGuid: selectedHabitacion.habitacionGuid as string }
+              : {}),
             numHabitaciones: 1,
             numAdultos: adultos,
             numNinos: ninos,
