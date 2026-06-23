@@ -499,6 +499,7 @@ export interface IntegratedBookingRequest {
     };
     habitaciones: {
       tipoHabitacionGuid: string;
+      habitacionGuid?: string;
       numHabitaciones: number;
       numAdultos: number;
       numNinos: number;

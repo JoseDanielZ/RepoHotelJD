@@ -89,7 +89,7 @@ export default function BackofficeReservasScreen() {
         }
         renderItem={({ item: r }) => (
           <Pressable
-            onPress={() => router.push(`/(backoffice)/reservas/${r.idReserva}` as any)}
+            onPress={() => router.push(`/(backoffice)/reservas/${r.reservaGuid}` as any)}
             className="bg-white mx-4 mb-2 rounded-xl p-4 shadow-sm flex-row items-center">
             <View className="flex-1">
               <Text className="font-mono font-semibold text-navy-600 text-sm mb-0.5">{r.codigoReserva}</Text>
