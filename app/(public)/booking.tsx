@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import axios from 'axios';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import { Picker } from '@react-native-picker/picker';
@@ -111,9 +112,42 @@ export default function BookingScreen() {
       return;
     }
 
+    // La habitación física específica es obligatoria: sin ella el backend
+    // auto-selecciona otra y se pierde la elección del usuario.
+    const habitacionGuid: string | undefined = selectedHabitacion?.habitacionGuid;
+    if (!habitacionGuid) {
+      setError('Selecciona una habitación específica antes de continuar.');
+      setStep(0);
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
+      // Refrescar disponibilidad justo antes de reservar para evitar reservar
+      // una habitación que otra persona acaba de tomar.
+      const dispRes = await alojamientoApi.getHabitacionesPublic({
+        sucursalGuid,
+        fechaInicio: fechaInicio || undefined,
+        fechaFin: fechaFin || undefined,
+      });
+      const allDisp = Array.isArray(dispRes.data)
+        ? dispRes.data
+        : (dispRes.data as any).items ?? (dispRes.data as any).data ?? [];
+      const disponibles = allDisp
+        .filter((h: any) => h.estadoHabitacion === 'DIS')
+        .filter((h: any) => !tipoHabitacionGuid || h.tipoHabitacionGuid === tipoHabitacionGuid);
+      setHabitacionesDisponibles(disponibles);
+
+      const sigueDisponible = disponibles.some((h: any) => h.habitacionGuid === habitacionGuid);
+      if (!sigueDisponible) {
+        setSelectedHabitacion(null);
+        setError('Esa habitación acaba de ser reservada por otra persona. Elige otra.');
+        setStep(0);
+        setLoading(false);
+        return;
+      }
+
       const { data } = await reservasApi.createReservaPublic({
         sucursalGuid,
         fechaInicio,
@@ -132,9 +166,7 @@ export default function BookingScreen() {
         habitaciones: [
           {
             tipoHabitacionGuid: tipoGuid,
-            ...(selectedHabitacion?.habitacionGuid
-              ? { habitacionGuid: selectedHabitacion.habitacionGuid as string }
-              : {}),
+            habitacionGuid,
             numHabitaciones: 1,
             numAdultos: adultos,
             numNinos: ninos,
@@ -146,7 +178,33 @@ export default function BookingScreen() {
       setReservaCreada(reservaData.codigoReserva ?? reservaData.reservaGuid ?? '');
       setStep(4);
     } catch (err) {
-      setError(extractError(err));
+      // Conflicto: la habitación fue tomada entre el refresco y el POST.
+      const status = (axios.isAxiosError(err) && err.response?.status) || 0;
+      const msg = extractError(err);
+      const esConflictoHabitacion =
+        status === 409 ||
+        /no hay habitaciones disponibles|se superpone|ya tiene una reserva|ya reservada|ocupad/i.test(msg);
+      if (esConflictoHabitacion) {
+        setSelectedHabitacion(null);
+        setError('Esa habitación acaba de ser reservada por otra persona. Elige otra.');
+        setStep(0);
+        // Recargar la lista para reflejar la habitación ya ocupada.
+        try {
+          const r = await alojamientoApi.getHabitacionesPublic({
+            sucursalGuid,
+            fechaInicio: fechaInicio || undefined,
+            fechaFin: fechaFin || undefined,
+          });
+          const all = Array.isArray(r.data) ? r.data : (r.data as any).items ?? (r.data as any).data ?? [];
+          setHabitacionesDisponibles(
+            all
+              .filter((h: any) => h.estadoHabitacion === 'DIS')
+              .filter((h: any) => !tipoHabitacionGuid || h.tipoHabitacionGuid === tipoHabitacionGuid)
+          );
+        } catch { /* noop */ }
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
